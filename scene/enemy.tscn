@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://bo1878if0f3og"]
+
+[ext_resource type="Script" uid="uid://spd331e3labi" path="res://scene/enemy.gd" id="1_4jekx"]
+[ext_resource type="Shader" uid="uid://cc6tk3pcxwa21" path="res://scene/blink.gdshader" id="2_s685e"]
+[ext_resource type="AudioStream" uid="uid://cotpohxgrapdk" path="res://resourse/audio/cowboy_explosion.wav" id="3_vmi60"]
+[ext_resource type="AudioStream" uid="uid://70t184bm2rxf" path="res://resourse/audio/cowboy_monsterdie.wav" id="4_hti8k"]
+[ext_resource type="AudioStream" uid="uid://cdjghh7geiy23" path="res://resourse/audio/cowboy_dead.wav" id="5_44hyy"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nyk1g"]
+resource_local_to_scene = true
+shader = ExtResource("2_s685e")
+shader_parameter/blink_enabled = false
+shader_parameter/blink_speed = 12.0
+shader_parameter/hidden_ratio = 0.5
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qsrtu"]
+resource_local_to_scene = true
+radius = 4.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ayd5m"]
+resource_local_to_scene = true
+radius = 6.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_747xd"]
+resource_local_to_scene = true
+radius = 8.0
+
+[node name="Enemy" type="CharacterBody2D" unique_id=1255730247]
+collision_layer = 4
+script = ExtResource("1_4jekx")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=229521164]
+material = SubResource("ShaderMaterial_nyk1g")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2104225353]
+shape = SubResource("CircleShape2D_qsrtu")
+
+[node name="TouchDamageArea" type="Area2D" parent="." unique_id=1165113099]
+collision_layer = 8
+collision_mask = 18
+
+[node name="CollisionShape" type="CollisionShape2D" parent="TouchDamageArea" unique_id=513570846]
+shape = SubResource("CircleShape2D_ayd5m")
+
+[node name="ExplosionArea" type="Area2D" parent="." unique_id=1336925391]
+collision_layer = 64
+collision_mask = 6
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExplosionArea" unique_id=297904824]
+shape = SubResource("CircleShape2D_747xd")
+
+[node name="AudioContainer" type="Node" parent="." unique_id=1887517859]
+
+[node name="ExplodeSfxPlayer" type="AudioStreamPlayer" parent="AudioContainer" unique_id=1424538085]
+stream = ExtResource("3_vmi60")
+
+[node name="HitSfxPlayer" type="AudioStreamPlayer" parent="AudioContainer" unique_id=1662908196]
+stream = ExtResource("4_hti8k")
+
+[node name="DieSfxPlayer" type="AudioStreamPlayer" parent="AudioContainer" unique_id=1074112474]
+stream = ExtResource("5_44hyy")
