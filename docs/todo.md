@@ -25,3 +25,9 @@
 ## 金币方案摘要
 
 金币基础系统已实现：复用 `Pickup` 的物理层，新增加 `Coin` 场景、`Player.add_coins()` 接口和金币 HUD；在 `Enemy._die()` 的统一入口按 `EnemyConfig` 配置生成金币。后续仍需决定跨关卡保存、磁吸行为、金币动画和更细的掉落平衡。
+
+## Round and Shop Follow-ups
+
+- Shop item purchasing and the coin spending API are not implemented yet.
+- Shop item configuration and progression balancing remain future work.
+- Cross-run coin saving is not implemented; GameSession coins are only for the current run.

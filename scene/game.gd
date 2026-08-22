@@ -34,7 +34,7 @@ const RESULT_OK_BUTTON_TEXT := "结束游戏"
 @export_range(1, 200, 1, "or_greater") var max_alive_enemies: int = 12
 @export_group("关卡 UI")
 # 关卡倒计时总时长，单位为秒。
-@export_range(1.0, 3600.0, 1.0, "or_greater") var stage_duration: float = 60.0
+@export_range(1.0, 3600.0, 1.0, "or_greater") var stage_duration: float = 10
 
 # 主场景中的核心引用。
 @onready var player: Player = $Player
@@ -43,6 +43,7 @@ const RESULT_OK_BUTTON_TEXT := "结束游戏"
 @onready var enemy_spawn_timer: Timer = $EnemySpawnTimer
 @onready var life_count_label: Label = $HUDLayer/LifeCountLabel
 @onready var coin_count_label: Label = $HUDLayer/CoinCountLabel
+@onready var round_count_label: Label = $HUDLayer/RoundCountLabel
 @onready var time_bar: Sprite2D = $HUDLayer/TimeBar
 @onready var result_dialog: AcceptDialog = $AcceptDialog
 @onready var bgm_player: AudioStreamPlayer = $AudioContainer/BgmPlayer
@@ -66,10 +67,15 @@ var time_bar_left_edge_x: float = 0.0
 var time_bar_texture_width: float = 0.0
 # 是否已经进入结算状态，避免重复弹出结果窗口。
 var is_result_displayed: bool = false
+var is_round_transitioning: bool = false
 
 # 初始化刷怪系统：缓存出生点、缓存配置、刷出初始敌人并启动定时器。
 func _ready() -> void:
 	random_generator.randomize()
+	Engine.time_scale = 1.0
+	get_tree().paused = false
+	if player != null:
+		player.coins = GameSession.current_coins
 	if player != null and not player.coins_changed.is_connected(_on_player_coins_changed):
 		player.coins_changed.connect(_on_player_coins_changed)
 	_configure_result_dialog()
@@ -136,6 +142,7 @@ func _update_stage_timer(delta: float) -> void:
 func _update_hud() -> void:
 	_update_life_count_label()
 	_update_coin_count_label()
+	_update_round_count_label()
 	_update_time_bar()
 
 
@@ -152,6 +159,11 @@ func _on_player_coins_changed(new_amount: int) -> void:
 	if coin_count_label == null:
 		return
 	coin_count_label.text = "x %d" % new_amount
+
+func _update_round_count_label() -> void:
+	if round_count_label == null:
+		return
+	round_count_label.text = "Round %d" % GameSession.current_round
 	
 # 按倒计时百分比缩放时间条，并修正位置让它始终从左往右缩短。
 func _update_time_bar() -> void:
@@ -170,12 +182,24 @@ func _update_time_bar() -> void:
 	
 # 根据当前游戏状态判断是否触发胜利或失败结算。
 func _check_game_result() -> void:
-	if stage_time_left <= 0.0:
-		_show_result_dialog(RESULT_TITLE_WIN, RESULT_MESSAGE_WIN)
+	if is_round_transitioning:
 		return
-
 	if _get_player_current_health() <= 0:
 		_show_result_dialog(RESULT_TITLE_LOSE, RESULT_MESSAGE_LOSE)
+		return
+
+	if stage_time_left <= 0.0:
+		_complete_round()
+
+
+func _complete_round() -> void:
+	if is_round_transitioning:
+		return
+	is_round_transitioning = true
+	is_result_displayed = true
+	GameSession.current_coins = player.get_coins()
+	_stop_world()
+	_change_scene_after_stop("res://scene/shop.tscn")
 
 
 # 弹出结算窗口前暂停整个世界，并将焦点交给确定按钮。
@@ -222,7 +246,16 @@ func _play_sfx(audio_player: AudioStreamPlayer) -> void:
 
 # 结算窗口的所有关闭路径都统一结束游戏，保持单局流程最简。
 func _on_result_dialog_exit_requested() -> void:
-	get_tree().quit()
+	Engine.time_scale = 1.0
+	get_tree().paused = false
+	GameSession.reset_run()
+	get_tree().change_scene_to_file("res://scene/main_menu.tscn")
+
+
+func _change_scene_after_stop(scene_path: String) -> void:
+	Engine.time_scale = 1.0
+	get_tree().paused = false
+	get_tree().change_scene_to_file(scene_path)
 
 
 # 通过玩家对外暴露的接口读取当前生命值，避免 Game 直接依赖玩家内部变量。

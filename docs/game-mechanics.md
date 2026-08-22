@@ -29,3 +29,11 @@
 ## 金币
 
 敌人死亡按 `EnemyConfig.coin_drop_chance` 判断是否掉落一个金币，面值由 `coin_value` 决定。金币生成在死亡位置附近，并加入约 ±4 像素的随机偏移。玩家接触金币后自动调用 `Player.add_coins()`，金币销毁，`coins_changed` 信号驱动 HUD 更新。当前金币仅在本局有效，不实现磁吸或跨关卡存档。
+
+## Round and Shop
+
+- Each `Game` instance is one combat round using the existing `stage_duration` / `stage_time_left` countdown.
+- Surviving until the countdown reaches zero completes the round and opens the independent Shop scene.
+- Shop currently displays the round, current coins, and a placeholder item; purchasing and coin spending are not implemented.
+- Player death follows the failure path back to MainMenu and never enters Shop.
+- Player remains the source of truth for coins; GameSession only temporarily carries current coins between Game and Shop during the current run.

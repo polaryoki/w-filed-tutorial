@@ -37,3 +37,7 @@
 ## Main Menu Startup Flow
 
 `project.godot` uses `res://scene/main_menu.tscn` as the entry scene. The independent `MainMenu` Control scene handles title and button interactions, then changes to the existing `Game` scene. Game remains responsible for combat, HUD, pickups, and coins.
+
+## Round and Shop Flow
+
+`Game` now represents one timed combat round. When its existing countdown reaches zero, it saves the current Player coin amount to the minimal `GameSession` Autoload and changes to the independent `scene/shop.tscn`. Shop displays the current round and coins, then increments the round and starts a new Game scene. Player death returns to MainMenu instead of Shop. GameSession only stores `current_round` and `current_coins` for this scene transition.

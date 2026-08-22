@@ -21,3 +21,11 @@
 - Added an independent `scene/main_menu.tscn` startup scene.
 - Added title, Start Game, Settings placeholder, and Quit buttons.
 - Start Game opens the existing Game scene; no combat or coin logic was changed.
+
+## Round and Shop Flow
+
+- Added `GameSession` Autoload with only `current_round` and `current_coins` state.
+- Game countdown completion transitions once to independent `scene/shop.tscn`.
+- Shop displays the current round, current coins, and a not-yet-available item placeholder.
+- Continue advances the round and starts Game again; player death returns to MainMenu.
+- Existing Player coin acquisition, Coin pickup, Pickup behavior, and HUD update logic remain unchanged.

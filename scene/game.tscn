@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bpwpvfmi3p6sx" path="res://scene/game.gd" id="1_ll5lq"]
 [ext_resource type="Texture2D" uid="uid://dmk646gi6ly47" path="res://resourse/texture/瓦片.png" id="2_17rxn"]
 [ext_resource type="Texture2D" uid="uid://cwk8lu7ygrmgw" path="res://resourse/texture/动态瓦片.png" id="3_yq8tf"]
-[ext_resource type="PackedScene" uid="uid://bcymmm4fahwbq" path="res://Scene/player.tscn" id="4_ym5sv"]
+[ext_resource type="PackedScene" uid="uid://bcymmm4fahwbq" path="res://scene/player.tscn" id="4_ym5sv"]
 [ext_resource type="Texture2D" uid="uid://mdky56xltbgs" path="res://resourse/texture/道具ui.png" id="5_sng2h"]
 [ext_resource type="FontFile" uid="uid://c0hfd8a70mqk" path="res://resourse/font/IPix.ttf" id="6_5g16k"]
 [ext_resource type="AudioStream" uid="uid://31ro6x2iyrgc" path="res://resourse/audio/Cowboy_Secret.wav" id="7_81276"]
@@ -188,19 +188,27 @@ offset_bottom = 42.0
 theme_override_fonts/font = ExtResource("6_5g16k")
 text = "x 5"
 
-[node name="CoinIcon" type="Sprite2D" parent="HUDLayer"]
+[node name="CoinIcon" type="Sprite2D" parent="HUDLayer" unique_id=136608562]
 position = Vector2(-55, 52)
 texture = ExtResource("5_sng2h")
 region_enabled = true
 region_rect = Rect2(0, 18, 16, 11)
 
-[node name="CoinCountLabel" type="Label" parent="HUDLayer"]
+[node name="CoinCountLabel" type="Label" parent="HUDLayer" unique_id=1246650780]
 offset_left = -41.0
 offset_top = 42.0
 offset_right = -1.0
 offset_bottom = 65.0
 theme_override_fonts/font = ExtResource("6_5g16k")
 text = "x 0"
+
+[node name="RoundCountLabel" type="Label" parent="HUDLayer"]
+offset_left = 38.0
+offset_top = 18.0
+offset_right = 150.0
+offset_bottom = 41.0
+theme_override_fonts/font = ExtResource("6_5g16k")
+text = "Round 1"
 
 [node name="TimeIcon" type="Sprite2D" parent="HUDLayer" unique_id=308990872]
 position = Vector2(19, -17)
