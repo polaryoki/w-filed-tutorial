@@ -42,3 +42,30 @@
 Relics are permanent passive effects for the current run only. Shop offers up to three randomly ordered, non-owned relics; insufficient coins prevent purchase and a purchased relic cannot be bought again. Lucky Starting Gold grants 2 coins at each new round, Rapid Chamber reduces the base fire interval by 10%, and Reinforced Charm adds 1 base maximum health. Effects are recalculated per round and do not stack repeatedly across rounds.
 
 Swift Boots increases movement speed by 15%, Iron Will adds 0.25 seconds of invincibility after damage, and Long Barrel increases bullet spawn distance by 6. These effects persist for the current run and are recalculated from base Player attributes each round.
+
+## Planned Gameplay Expansion
+
+These mechanics are design targets only and are not currently implemented.
+
+### Boss battles
+
+- A boss should appear at a defined round or after a configured number of waves.
+- Boss progress should be owned by the round/Game flow, not by Shop or MainMenu.
+- Bosses should use dedicated configuration Resources for health, movement, attacks, phases, rewards, and arena rules.
+- A boss round should have explicit success/failure conditions while preserving the existing player death flow.
+
+### Character attributes
+
+Future characters may define base values such as maximum health, move speed, fire interval, damage, projectile count, pickup range, luck, armor, critical chance, and starting equipment. These values should be resolved from character data plus run bonuses at round start, preventing repeated cross-round stacking.
+
+### Weapons
+
+Weapons are planned as independent Resources/scenes with configurable damage, fire interval, projectile count, spread, projectile speed, range, piercing, and upgrade levels. Player should coordinate equipped weapons while weapon behavior remains outside the core movement logic.
+
+### Weapon synergies
+
+Weapon synergies are planned as set-based bonuses, for example matching weapon families or tags. A synergy should be calculated from the current equipped set and applied once to resolved weapon stats; it must not recursively reapply on every round.
+
+### Progression and shop
+
+Future Shop iterations may offer weapon upgrades, character stats, rerolls, locks, and boss rewards. These remain run-only unless a separate permanent-save design is approved.

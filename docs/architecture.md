@@ -46,3 +46,14 @@
 Relic Resources define display data and effect values. `GameSession.owned_relics` stores IDs for the current run; Shop owns purchase UI and coin spending during scene transitions, while Game recalculates relic effects from Player base attributes at each new round.
 
 Additional relic effects continue to use the existing Resource `EffectType` enum. Game applies movement speed, invincibility duration, and bullet spawn distance from each new Player's base attributes.
+
+## Future Expansion Roadmap
+
+The following systems are planned and are not implemented yet. They should be introduced incrementally, preserving the current scene flow and keeping combat responsibilities separated.
+
+- `RunSession`/`GameSession` remains the owner of current-run state such as round, coins, owned relics, selected character, weapons, and future boss progress. It must not become a combat event bus.
+- `Game` remains the single-round combat scene. Boss encounters, wave rules, and round modifiers should be supplied as data/configuration rather than embedded in Player, Enemy, or Shop.
+- Character definitions should use Resources for base attributes, starting weapon, and passive traits. Player should apply a selected character's resolved stats once when a round starts.
+- Weapons should be independent data-driven Resources/scenes. A weapon owns fire interval, damage, projectile pattern, cooldown, and upgrade data; Player owns input/orchestration rather than one hard-coded weapon implementation.
+- Weapon synergies should be represented by data rules checked when the run's weapon set changes. They should grant resolved bonuses without repeatedly mutating already-resolved stats.
+- Shop should remain an independent scene that presents weapons, relics, character upgrades, and later reroll/lock options. Purchase rules should use the existing current-run currency boundary.

@@ -36,3 +36,61 @@
 - Balance the expanded six-relic pool.
 - Add relic icons and richer item presentation.
 - Add more advanced shop refresh and relic upgrade mechanics.
+
+## Project Expansion Roadmap
+
+The following roadmap is ordered from foundational systems to larger gameplay features. Each item requires a separate design pass before implementation.
+
+### Phase 1: Stabilize current run systems
+
+- Fix and verify all Shop/Relic UI paths with Godot runtime checks.
+- Add focused validation for GameSession reset, coin handoff, relic purchase, and cross-round effect resolution.
+- Keep current Player, Coin, Pickup, Enemy, and round timer behavior unchanged while adding tests.
+
+### Phase 2: Character data and multi-attribute system
+
+- Add character Resource definitions with base health, move speed, fire interval, damage, projectile count, pickup range, luck, armor, and critical chance where supported.
+- Add character selection after MainMenu or before the first Game scene.
+- Resolve character attributes plus relic/run bonuses once per round.
+- Define stacking, caps, and display rules before adding more attributes.
+
+### Phase 3: Independent weapon system
+
+- Define weapon Resources for damage, cooldown, projectile count, spread, speed, range, piercing, and tags.
+- Separate weapon firing from Player input orchestration without rewriting movement.
+- Support multiple equipped weapons and per-run weapon upgrades.
+- Preserve the existing Bullet collision and lifetime behavior unless a weapon requirement proves a minimal extension necessary.
+
+### Phase 4: Weapon synergy system
+
+- Add weapon tags and a data-driven synergy definition.
+- Resolve synergies from the equipped weapon set.
+- Apply synergy bonuses once to resolved weapon stats and prevent recursive stacking.
+- Add clear Shop and HUD feedback for active synergies.
+
+### Phase 5: Boss battle system
+
+- Define BossConfig Resources for health, phases, attacks, movement, rewards, and spawn rules.
+- Add a configured boss round or wave threshold.
+- Define boss success, failure, reward, and transition behavior.
+- Keep boss logic separate from ordinary Enemy configuration where behavior is materially different.
+
+### Phase 6: Expanded Shop and run progression
+
+- Add weapon offers, weapon upgrades, character upgrades, rerolls, and optional shop locks.
+- Define shop inventory generation and refresh costs.
+- Add boss rewards and run milestones.
+- Keep all temporary progression in GameSession until permanent saves are explicitly designed.
+
+### Phase 7: Balance and presentation
+
+- Add relic/weapon/character balance data and difficulty curves.
+- Add boss telegraphs, UI feedback, audio, and pixel-art icons.
+- Add automated smoke tests and repeatable run validation.
+
+### Long-term, not yet approved
+
+- Permanent currency and save files.
+- Meta-progression and unlocks.
+- More complex enemy factions and multi-stage bosses.
+- Online features or external plugins.

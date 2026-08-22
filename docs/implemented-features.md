@@ -36,3 +36,7 @@
 - Shop displays up to three non-owned relics, supports fixed-in-view purchases, coin deduction, and purchased states.
 - Game applies owned relic effects from base Player attributes on each new round.
 - Added Swift Boots, Iron Will, and Long Barrel relic Resources and per-round effects.
+
+## Scope Boundary
+
+Boss battles, selectable characters, multi-attribute character progression, independent weapons, weapon synergies, rerolls, and permanent progression are planned systems only. They are not implemented in the current build.
