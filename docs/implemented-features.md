@@ -24,8 +24,15 @@
 
 ## Round and Shop Flow
 
-- Added `GameSession` Autoload with only `current_round` and `current_coins` state.
+- Added `GameSession` Autoload with `current_round`, `current_coins`, and `owned_relics` current-run state.
 - Game countdown completion transitions once to independent `scene/shop.tscn`.
-- Shop displays the current round, current coins, and a not-yet-available item placeholder.
+- Shop displays the current round, current coins, and available relic offers.
 - Continue advances the round and starts Game again; player death returns to MainMenu.
 - Existing Player coin acquisition, Coin pickup, Pickup behavior, and HUD update logic remain unchanged.
+## Relics
+
+- Added Resource-defined Lucky Starting Gold, Rapid Chamber, and Reinforced Charm relics.
+- GameSession stores owned relic IDs for the current run.
+- Shop displays up to three non-owned relics, supports fixed-in-view purchases, coin deduction, and purchased states.
+- Game applies owned relic effects from base Player attributes on each new round.
+- Added Swift Boots, Iron Will, and Long Barrel relic Resources and per-round effects.

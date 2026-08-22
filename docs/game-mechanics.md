@@ -34,6 +34,11 @@
 
 - Each `Game` instance is one combat round using the existing `stage_duration` / `stage_time_left` countdown.
 - Surviving until the countdown reaches zero completes the round and opens the independent Shop scene.
-- Shop currently displays the round, current coins, and a placeholder item; purchasing and coin spending are not implemented.
+- Shop displays the round, current coins, and up to three fixed-in-view relic offers; insufficient coins prevent purchase and successful purchases update the current-run state.
 - Player death follows the failure path back to MainMenu and never enters Shop.
 - Player remains the source of truth for coins; GameSession only temporarily carries current coins between Game and Shop during the current run.
+## Relics
+
+Relics are permanent passive effects for the current run only. Shop offers up to three randomly ordered, non-owned relics; insufficient coins prevent purchase and a purchased relic cannot be bought again. Lucky Starting Gold grants 2 coins at each new round, Rapid Chamber reduces the base fire interval by 10%, and Reinforced Charm adds 1 base maximum health. Effects are recalculated per round and do not stack repeatedly across rounds.
+
+Swift Boots increases movement speed by 15%, Iron Will adds 0.25 seconds of invincibility after damage, and Long Barrel increases bullet spawn distance by 6. These effects persist for the current run and are recalculated from base Player attributes each round.

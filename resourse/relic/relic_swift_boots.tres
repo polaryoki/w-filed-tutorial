@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://resourse/relic/relic_data.gd" id="1_relic"]
+[resource]
+script = ExtResource("1_relic")
+id = &"swift_boots"
+display_name = "迅捷长靴"
+description = "移动速度提高 15%。"
+price = 7
+effect_type = 3
+effect_value = 1.15

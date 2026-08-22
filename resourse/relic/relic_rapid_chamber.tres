@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resourse/relic/relic_data.gd" id="1_relic"]
+
+[resource]
+script = ExtResource("1_relic")
+id = &"rapid_chamber"
+display_name = "快速装填器"
+description = "射击间隔降低 10%。"
+price = 8
+effect_type = 1
+effect_value = 0.9

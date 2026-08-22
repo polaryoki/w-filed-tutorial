@@ -28,6 +28,11 @@
 
 ## Round and Shop Follow-ups
 
-- Shop item purchasing and the coin spending API are not implemented yet.
 - Shop item configuration and progression balancing remain future work.
 - Cross-run coin saving is not implemented; GameSession coins are only for the current run.
+## Relic Follow-ups
+
+- Add more relics and balance prices/effects.
+- Balance the expanded six-relic pool.
+- Add relic icons and richer item presentation.
+- Add more advanced shop refresh and relic upgrade mechanics.

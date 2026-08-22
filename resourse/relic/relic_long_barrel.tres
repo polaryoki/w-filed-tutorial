@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://resourse/relic/relic_data.gd" id="1_relic"]
+[resource]
+script = ExtResource("1_relic")
+id = &"long_barrel"
+display_name = "长管瞄具"
+description = "子弹生成距离增加 6。"
+price = 6
+effect_type = 5
+effect_value = 6.0

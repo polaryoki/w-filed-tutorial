@@ -76,6 +76,7 @@ func _ready() -> void:
 	get_tree().paused = false
 	if player != null:
 		player.coins = GameSession.current_coins
+		_apply_owned_relics()
 	if player != null and not player.coins_changed.is_connected(_on_player_coins_changed):
 		player.coins_changed.connect(_on_player_coins_changed)
 	_configure_result_dialog()
@@ -88,6 +89,38 @@ func _ready() -> void:
 	print("stage_duration =", stage_duration)
 	print("stage_time_left =", stage_time_left)
 	print("paused =", get_tree().paused)
+
+func _apply_owned_relics() -> void:
+	var base_fire_interval := player.fire_interval
+	var base_max_health := player.max_health
+	var base_move_speed := player.move_speed
+	var base_invincibility_duration := player.invincibility_duration
+	var base_bullet_spawn_distance := player.bullet_spawn_distance
+	var fire_interval := base_fire_interval
+	var max_health := base_max_health
+	var move_speed := base_move_speed
+	var invincibility_duration := base_invincibility_duration
+	var bullet_spawn_distance := base_bullet_spawn_distance
+	for relic_id in GameSession.owned_relics:
+		match relic_id:
+			"lucky_start":
+				player.add_coins(2)
+			"rapid_chamber":
+				fire_interval = base_fire_interval * 0.9
+			"reinforced_charm":
+				max_health = base_max_health + 1
+			"swift_boots":
+				move_speed = base_move_speed * 1.15
+			"iron_will":
+				invincibility_duration = base_invincibility_duration + 0.25
+			"long_barrel":
+				bullet_spawn_distance = base_bullet_spawn_distance + 6.0
+	player.fire_interval = fire_interval
+	player.max_health = max_health
+	player.move_speed = move_speed
+	player.invincibility_duration = invincibility_duration
+	player.bullet_spawn_distance = bullet_spawn_distance
+	player.current_health = max_health
 
 
 

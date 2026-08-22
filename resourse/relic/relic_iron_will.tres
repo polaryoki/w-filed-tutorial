@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://resourse/relic/relic_data.gd" id="1_relic"]
+[resource]
+script = ExtResource("1_relic")
+id = &"iron_will"
+display_name = "坚韧意志"
+description = "受伤后的无敌时间增加 0.25 秒。"
+price = 9
+effect_type = 4
+effect_value = 0.25

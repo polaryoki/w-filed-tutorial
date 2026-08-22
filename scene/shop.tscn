@@ -43,7 +43,7 @@ theme_override_constants/margin_bottom = 28
 
 [node name="Layout" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout"]
 layout_mode = 2
@@ -55,24 +55,54 @@ horizontal_alignment = 1
 [node name="RoundLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
 text = "回合 1"
 horizontal_alignment = 1
 
 [node name="GoldLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
 text = "金币：0"
 horizontal_alignment = 1
 
-[node name="ItemPlaceholder" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout"]
+[node name="RelicItems" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.72, 0.72, 1)
+theme_override_constants/separation = 6
+
+[node name="RelicItem0" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems"]
+layout_mode = 2
+[node name="Info" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem0"]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
-text = "商品系统暂未开放"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+[node name="BuyButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem0"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+
+[node name="RelicItem1" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems"]
+layout_mode = 2
+[node name="Info" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem1"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+[node name="BuyButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem1"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+
+[node name="RelicItem2" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems"]
+layout_mode = 2
+[node name="Info" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem2"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+[node name="BuyButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem2"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
 
 [node name="ContinueButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout"]
 custom_minimum_size = Vector2(0, 42)

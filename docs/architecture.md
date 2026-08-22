@@ -40,4 +40,9 @@
 
 ## Round and Shop Flow
 
-`Game` now represents one timed combat round. When its existing countdown reaches zero, it saves the current Player coin amount to the minimal `GameSession` Autoload and changes to the independent `scene/shop.tscn`. Shop displays the current round and coins, then increments the round and starts a new Game scene. Player death returns to MainMenu instead of Shop. GameSession only stores `current_round` and `current_coins` for this scene transition.
+`Game` now represents one timed combat round. When its existing countdown reaches zero, it saves the current Player coin amount to `GameSession` and changes to the independent `scene/shop.tscn`. Shop displays the current round and coins, supports relic purchases, then increments the round and starts a new Game scene. `GameSession` stores `current_round`, `current_coins`, and `owned_relics` for the current run.
+## Relic System
+
+Relic Resources define display data and effect values. `GameSession.owned_relics` stores IDs for the current run; Shop owns purchase UI and coin spending during scene transitions, while Game recalculates relic effects from Player base attributes at each new round.
+
+Additional relic effects continue to use the existing Resource `EffectType` enum. Game applies movement speed, invincibility duration, and bullet spawn distance from each new Player's base attributes.

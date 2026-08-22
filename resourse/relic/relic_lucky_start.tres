@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resourse/relic/relic_data.gd" id="1_relic"]
+
+[resource]
+script = ExtResource("1_relic")
+id = &"lucky_start"
+display_name = "幸运起始金"
+description = "每个新回合开始时额外获得 2 枚金币。"
+price = 5
+effect_type = 0
+effect_value = 2.0
