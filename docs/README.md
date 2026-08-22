@@ -12,3 +12,7 @@
 - [待开发功能](todo.md)
 
 本文档基线依据当前仓库只读检查建立，未改变运行时代码。
+
+## Main Menu Update
+
+The project now starts at `res://scene/main_menu.tscn`. The menu routes the Start Game action to `res://scene/game.tscn`; Settings is a placeholder and Quit exits normally.

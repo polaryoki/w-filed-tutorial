@@ -33,3 +33,7 @@
 ## 物理层
 
 项目已定义 World、Player、EnemyBody、EnemySensor、Bullet、Pickup、Explosion 七个 2D 物理层。脚本通过碰撞层/掩码区分世界阻挡、敌人感知、子弹命中和爆炸查询。
+
+## Main Menu Startup Flow
+
+`project.godot` uses `res://scene/main_menu.tscn` as the entry scene. The independent `MainMenu` Control scene handles title and button interactions, then changes to the existing `Game` scene. Game remains responsible for combat, HUD, pickups, and coins.

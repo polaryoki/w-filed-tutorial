@@ -15,3 +15,9 @@
 - 玩家接触自动拾取金币，金币数量通过 `Player` 接口和信号维护。
 - HUD 显示当前金币数量。
 - `Coin.set_magnet_target()` 和 `clear_magnet_target()` 已预留未来磁吸接口，当前不执行磁吸。
+
+## Main Menu
+
+- Added an independent `scene/main_menu.tscn` startup scene.
+- Added title, Start Game, Settings placeholder, and Quit buttons.
+- Start Game opens the existing Game scene; no combat or coin logic was changed.
