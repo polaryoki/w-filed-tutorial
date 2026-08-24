@@ -3,7 +3,7 @@
 ## 技术与入口
 
 - 引擎：Godot 4.7，Forward Plus。
-- 主场景：`res://scene/game.tscn`，由 `project.godot` 的 `run/main_scene` 指定。
+- 主场景：`res://scene/main_menu.tscn`，由 `project.godot` 的 `run/main_scene` 指定。
 - 主要语言：GDScript。
 - 项目采用场景（`.tscn`）与资源配置（`.tres`）分离的结构。
 
@@ -40,10 +40,10 @@
 
 ## Round and Shop Flow
 
-`Game` now represents one timed combat round. When its existing countdown reaches zero, it saves the current Player coin amount to `GameSession` and changes to the independent `scene/shop.tscn`. Shop displays the current round and coins, supports relic purchases, then increments the round and starts a new Game scene. `GameSession` stores `current_round`, `current_coins`, and `owned_relics` for the current run.
+`Game` now represents one timed combat round. When its existing countdown reaches zero, it saves the current Player coin amount to `GameSession` and changes to the independent `scene/shop.tscn`. Shop displays the current round and coins, supports relic purchases, then increments the round and starts a new Game scene. `GameSession` stores `current_round`, `current_coins`, and `owned_relics` for the current run, and owns the atomic relic-purchase rule so duplicate or underfunded purchases cannot deduct coins.
 ## Relic System
 
-Relic Resources define display data and effect values. `GameSession.owned_relics` stores IDs for the current run; Shop owns purchase UI and coin spending during scene transitions, while Game recalculates relic effects from Player base attributes at each new round.
+Relic Resources define display data and effect values. `GameSession.owned_relics` stores IDs and owns atomic coin/relic transactions for the current run; Shop owns purchase UI, while Game recalculates relic effects from Player base attributes at each new round.
 
 Additional relic effects continue to use the existing Resource `EffectType` enum. Game applies movement speed, invincibility duration, and bullet spawn distance from each new Player's base attributes.
 

@@ -36,6 +36,8 @@
 - Shop displays up to three non-owned relics, supports fixed-in-view purchases, coin deduction, and purchased states.
 - Game applies owned relic effects from base Player attributes on each new round.
 - Added Swift Boots, Iron Will, and Long Barrel relic Resources and per-round effects.
+- Added `GameSession.try_purchase_relic()` as the single atomic relic purchase boundary; duplicate and underfunded purchase attempts do not change run state.
+- Added `tests/phase1_smoke.gd`, a headless smoke script covering GameSession reset/purchase invariants and required scene loading.
 
 ## Scope Boundary
 

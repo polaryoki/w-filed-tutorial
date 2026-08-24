@@ -34,7 +34,7 @@
 
 - Each `Game` instance is one combat round using the existing `stage_duration` / `stage_time_left` countdown.
 - Surviving until the countdown reaches zero completes the round and opens the independent Shop scene.
-- Shop displays the round, current coins, and up to three fixed-in-view relic offers; insufficient coins prevent purchase and successful purchases update the current-run state.
+- Shop displays the round, current coins, and up to three fixed-in-view relic offers; `GameSession` performs each purchase atomically, so insufficient funds and duplicate purchases leave coins and owned relics unchanged.
 - Player death follows the failure path back to MainMenu and never enters Shop.
 - Player remains the source of truth for coins; GameSession only temporarily carries current coins between Game and Shop during the current run.
 ## Relics

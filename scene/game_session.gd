@@ -27,3 +27,16 @@ func add_relic(relic_id: String) -> bool:
 		return false
 	owned_relics.append(relic_id)
 	return true
+
+
+# 商店交易必须同时满足「未拥有」和「余额足够」两个条件，避免 UI 重复点击时
+# 分别扣款、加遗物而造成状态不一致。
+func try_purchase_relic(relic_id: String, price: int) -> bool:
+	if relic_id.is_empty() or price <= 0:
+		return false
+	if has_relic(relic_id) or current_coins < price:
+		return false
+
+	current_coins -= price
+	owned_relics.append(relic_id)
+	return true

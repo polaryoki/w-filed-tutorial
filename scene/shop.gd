@@ -44,11 +44,8 @@ func _on_relic_buy_pressed(index: int) -> void:
 	if index < 0 or index >= displayed_relics.size():
 		return
 	var relic := displayed_relics[index]
-	if GameSession.has_relic(String(relic.id)):
+	if not GameSession.try_purchase_relic(String(relic.id), relic.price):
 		return
-	if not GameSession.try_spend_coins(relic.price):
-		return
-	GameSession.add_relic(String(relic.id))
 	_refresh_gold()
 
 func _refresh_relic_button(index: int) -> void:
