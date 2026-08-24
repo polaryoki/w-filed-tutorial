@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CharacterConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resourse/character/character_config.gd" id="1_character"]
+
+[resource]
+script = ExtResource("1_character")
+id = &"gunslinger"
+display_name = "Gunslinger"
+description = "A balanced starter with reliable health, speed, and fire rate."
+base_health = 5
+move_speed = 120.0
+fire_interval = 0.18
+damage = 1
+projectile_count = 1
+pickup_range = 48.0
+luck = 0.05
+armor = 0
+critical_chance = 0.05
+invincibility_duration = 1.0
+bullet_spawn_distance = 18.0
+starting_weapon = &"basic"
+passive = &"steady_hand"

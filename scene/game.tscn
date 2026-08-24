@@ -210,6 +210,14 @@ offset_bottom = 41.0
 theme_override_fonts/font = ExtResource("6_5g16k")
 text = "Round 1"
 
+[node name="CharacterLabel" type="Label" parent="HUDLayer"]
+offset_left = 38.0
+offset_top = 42.0
+offset_right = 180.0
+offset_bottom = 65.0
+theme_override_fonts/font = ExtResource("6_5g16k")
+text = "Gunslinger"
+
 [node name="TimeIcon" type="Sprite2D" parent="HUDLayer" unique_id=308990872]
 position = Vector2(19, -17)
 texture = ExtResource("5_sng2h")

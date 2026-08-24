@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CharacterConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resourse/character/character_config.gd" id="1_character"]
+
+[resource]
+script = ExtResource("1_character")
+id = &"scout"
+display_name = "Scout"
+description = "Fast and lucky, but fragile when enemies close in."
+base_health = 4
+move_speed = 155.0
+fire_interval = 0.22
+damage = 1
+projectile_count = 1
+pickup_range = 64.0
+luck = 0.18
+armor = 0
+critical_chance = 0.08
+invincibility_duration = 0.9
+bullet_spawn_distance = 18.0
+starting_weapon = &"basic"
+passive = &"quick_step"

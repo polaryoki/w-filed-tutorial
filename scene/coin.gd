@@ -8,6 +8,7 @@ var is_collected: bool = false
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
+	area_entered.connect(_on_area_entered)
 
 # 初始化金币面值；磁吸相关行为暂不在此实现。
 func setup(coin_value: int) -> void:
@@ -21,10 +22,16 @@ func clear_magnet_target() -> void:
 	magnet_target = null
 
 func _on_body_entered(body: Node2D) -> void:
+	_try_collect_from_player(body as Player)
+
+
+func _on_area_entered(area: Area2D) -> void:
+	_try_collect_from_player(area.get_parent() as Player)
+
+
+func _try_collect_from_player(player: Player) -> void:
 	if is_collected:
 		return
-
-	var player := body as Player
 	if player == null:
 		return
 

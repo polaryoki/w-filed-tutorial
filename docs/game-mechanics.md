@@ -37,6 +37,17 @@
 - Shop displays the round, current coins, and up to three fixed-in-view relic offers; `GameSession` performs each purchase atomically, so insufficient funds and duplicate purchases leave coins and owned relics unchanged.
 - Player death follows the failure path back to MainMenu and never enters Shop.
 - Player remains the source of truth for coins; GameSession only temporarily carries current coins between Game and Shop during the current run.
+
+## Character Data and Attributes
+
+Before the first round, the player chooses one of three data-driven character
+Resources. Character base health, speed, fire interval, damage, projectile
+count, pickup range, luck, armor, critical chance, starting weapon, and passive
+are stored in `CharacterConfig`. `GameSession` resolves these base values plus
+owned relic effects once per round, clamps and rounds the result, and Player
+applies the supported fields. Character damage/projectile behavior remains a
+future weapon-system responsibility; pickup range is applied through a
+dedicated Player Area2D while direct contact remains supported.
 ## Relics
 
 Relics are permanent passive effects for the current run only. Shop offers up to three randomly ordered, non-owned relics; insufficient coins prevent purchase and a purchased relic cannot be bought again. Lucky Starting Gold grants 2 coins at each new round, Rapid Chamber reduces the base fire interval by 10%, and Reinforced Charm adds 1 base maximum health. Effects are recalculated per round and do not stack repeatedly across rounds.

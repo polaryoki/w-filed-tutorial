@@ -13,6 +13,7 @@ var is_expiring: bool = false
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
+	area_entered.connect(_on_area_entered)
 	lifetime_timer.timeout.connect(_on_lifetime_timer_timeout)
 	lifetime_timer.one_shot = true
 	if lifetime_timer.wait_time > 0.0:
@@ -39,10 +40,16 @@ func _apply_config_to_visual() -> void:
 	sprite.texture = config.icon_texture
 	
 func _on_body_entered(body: Node2D) -> void:
+	_try_collect_from_player(body as Player)
+
+
+func _on_area_entered(area: Area2D) -> void:
+	_try_collect_from_player(area.get_parent() as Player)
+
+
+func _try_collect_from_player(player: Player) -> void:
 	if config == null:
 		return
-		
-	var player := body as Player
 	if player == null:
 		return
 		

@@ -1,32 +1,45 @@
 # Progress
 
-## Current Status
+## Current status
 
-Phase 1 代码与静态检查完成；已加入可重复的 headless smoke script。引擎运行验证因当前环境未找到 Godot 可执行文件而阻塞。
+Phase 1 current-run flow is implemented. Its editor smoke command passes after
+the test defers work until the startup frame and initializes the autoload test
+context. Phase 2 character data, selection, and per-round stat resolution are
+implemented and covered by `tests/phase2_smoke.gd`.
 
 ## Tasks
 
-- [x] Phase 1 — 稳定现有回合系统（静态检查与原子遗物购买完成）
-- [ ] Phase 1 — Godot headless/runtime 验证（阻塞：未找到 godot 命令）
-- [ ] Phase 2 — 角色数据与多属性系统
+- [x] Phase 1: stabilize MainMenu -> Game -> Shop -> Game.
+- [x] Phase 2: character Resources, selection flow, and multi-attribute resolver.
+- [ ] Phase 3: independent weapon system.
 
-## Commands Run
+## Commands run
 
-- `rg --files`
-- `rg -n "change_scene|reset_run|current_coins|confirmed|_complete_round|_show_result" scene`
-- `godot --headless --path . --editor --quit`（失败：命令不存在）
-- `godot --headless --path . --script res://tests/phase1_smoke.gd`（待 Godot 4.7 可执行文件可用后运行）
+- `godot --headless --path . --editor --quit`
+- `godot --headless --path . --editor --check-only --script res://tests/phase2_smoke.gd`
+- `godot --headless --path . --editor --script res://tests/phase2_smoke.gd`
+- `godot --headless --path . --editor --script res://tests/phase1_smoke.gd`
 
-## Decisions
+## Phase 2 decisions
 
-- 保持现有场景流和本局金币边界，不在 Phase 1 引入新玩法。
-- 遗物购买收敛到 `GameSession.try_purchase_relic()`，保证扣款和所有权变更不可部分完成。
+- `GameSession` owns selected-character identity and cached resolution state.
+- Base values are resolved before relic bonuses; additive effects and
+  multiplicative effects use separate, deterministic passes.
+- Resolved results are clamped and continuous values are rounded to three
+  decimals; integer values are rounded to the nearest integer.
+- Damage, projectile count, starting weapon, and passive are data contracts for
+  Phase 3. Existing Player shooting behavior is intentionally unchanged.
+- Pickup range uses a dedicated Area2D so the existing Player body collision
+  shape and direct-contact collection remain compatible.
 
-## Blockers
+## Known environment risk
 
-- 需要安装或提供 Godot 4.7 命令行可执行文件，才能完成 headless 检查和 runtime smoke test。
+The installed Godot 4.7.1 Windows build crashes in this workspace when running
+custom SceneTree smoke scripts without `--editor`. The requested editor smoke
+command and editor import/check complete with exit code 0; the crash is an
+engine/environment issue rather than a Phase 2 assertion failure.
 
-## Next Steps
+## Next step
 
-- 在具备 Godot 4.7 的环境补跑 Phase 1 验证。
-- 验证通过后再开始 Phase 2 设计与实现。
+Design and implement the independent weapon Resource/system in Phase 3 without
+moving weapon behavior into the character resolver.

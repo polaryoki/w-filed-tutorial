@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CharacterConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resourse/character/character_config.gd" id="1_character"]
+
+[resource]
+script = ExtResource("1_character")
+id = &"guardian"
+display_name = "Guardian"
+description = "A durable defender with armor and a larger health pool."
+base_health = 8
+move_speed = 92.0
+fire_interval = 0.24
+damage = 1
+projectile_count = 1
+pickup_range = 42.0
+luck = 0.02
+armor = 1
+critical_chance = 0.02
+invincibility_duration = 1.15
+bullet_spawn_distance = 18.0
+starting_weapon = &"basic"
+passive = &"iron_skin"

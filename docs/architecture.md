@@ -41,6 +41,17 @@
 ## Round and Shop Flow
 
 `Game` now represents one timed combat round. When its existing countdown reaches zero, it saves the current Player coin amount to `GameSession` and changes to the independent `scene/shop.tscn`. Shop displays the current round and coins, supports relic purchases, then increments the round and starts a new Game scene. `GameSession` stores `current_round`, `current_coins`, and `owned_relics` for the current run, and owns the atomic relic-purchase rule so duplicate or underfunded purchases cannot deduct coins.
+
+## Character Data and Selection
+
+Phase 2 adds `CharacterConfig` Resources for Gunslinger, Scout, and Guardian.
+MainMenu resets the run and opens `scene/character_select.tscn`; the selected
+character ID is stored in `GameSession` before the first Game scene. At the
+start of each round, `GameSession.resolve_character_stats()` starts from the
+selected character's base values and applies owned relic bonuses once. Player
+receives a copy of those resolved values, including the supported pickup-range
+Area2D size, while the existing movement and shooting orchestration remains in
+Player.
 ## Relic System
 
 Relic Resources define display data and effect values. `GameSession.owned_relics` stores IDs and owns atomic coin/relic transactions for the current run; Shop owns purchase UI, while Game recalculates relic effects from Player base attributes at each new round.

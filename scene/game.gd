@@ -44,6 +44,7 @@ const RESULT_OK_BUTTON_TEXT := "结束游戏"
 @onready var life_count_label: Label = $HUDLayer/LifeCountLabel
 @onready var coin_count_label: Label = $HUDLayer/CoinCountLabel
 @onready var round_count_label: Label = $HUDLayer/RoundCountLabel
+@onready var character_label: Label = $HUDLayer/CharacterLabel
 @onready var time_bar: Sprite2D = $HUDLayer/TimeBar
 @onready var result_dialog: AcceptDialog = $AcceptDialog
 @onready var bgm_player: AudioStreamPlayer = $AudioContainer/BgmPlayer
@@ -76,7 +77,7 @@ func _ready() -> void:
 	get_tree().paused = false
 	if player != null:
 		player.coins = GameSession.current_coins
-		_apply_owned_relics()
+		_apply_character_stats()
 	if player != null and not player.coins_changed.is_connected(_on_player_coins_changed):
 		player.coins_changed.connect(_on_player_coins_changed)
 	_configure_result_dialog()
@@ -90,37 +91,12 @@ func _ready() -> void:
 	print("stage_time_left =", stage_time_left)
 	print("paused =", get_tree().paused)
 
-func _apply_owned_relics() -> void:
-	var base_fire_interval := player.fire_interval
-	var base_max_health := player.max_health
-	var base_move_speed := player.move_speed
-	var base_invincibility_duration := player.invincibility_duration
-	var base_bullet_spawn_distance := player.bullet_spawn_distance
-	var fire_interval := base_fire_interval
-	var max_health := base_max_health
-	var move_speed := base_move_speed
-	var invincibility_duration := base_invincibility_duration
-	var bullet_spawn_distance := base_bullet_spawn_distance
-	for relic_id in GameSession.owned_relics:
-		match relic_id:
-			"lucky_start":
-				player.add_coins(2)
-			"rapid_chamber":
-				fire_interval = base_fire_interval * 0.9
-			"reinforced_charm":
-				max_health = base_max_health + 1
-			"swift_boots":
-				move_speed = base_move_speed * 1.15
-			"iron_will":
-				invincibility_duration = base_invincibility_duration + 0.25
-			"long_barrel":
-				bullet_spawn_distance = base_bullet_spawn_distance + 6.0
-	player.fire_interval = fire_interval
-	player.max_health = max_health
-	player.move_speed = move_speed
-	player.invincibility_duration = invincibility_duration
-	player.bullet_spawn_distance = bullet_spawn_distance
-	player.current_health = max_health
+func _apply_character_stats() -> void:
+	var resolved_stats := GameSession.resolve_character_stats()
+	player.apply_character_stats(resolved_stats)
+	var starting_coins := int(resolved_stats.get("starting_coins", 0))
+	if starting_coins > 0:
+		player.add_coins(starting_coins)
 
 
 
@@ -176,6 +152,7 @@ func _update_hud() -> void:
 	_update_life_count_label()
 	_update_coin_count_label()
 	_update_round_count_label()
+	_update_character_label()
 	_update_time_bar()
 
 
@@ -197,6 +174,16 @@ func _update_round_count_label() -> void:
 	if round_count_label == null:
 		return
 	round_count_label.text = "Round %d" % GameSession.current_round
+
+
+func _update_character_label() -> void:
+	if character_label == null:
+		return
+	var character = GameSession.get_selected_character()
+	if character == null:
+		character_label.text = "Character"
+		return
+	character_label.text = String(character.get("display_name"))
 	
 # 按倒计时百分比缩放时间条，并修正位置让它始终从左往右缩短。
 func _update_time_bar() -> void:

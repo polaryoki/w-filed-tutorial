@@ -17,6 +17,7 @@ const WORLD_COLLISION_MASK := 1
 
 @onready var armed_effect_sprite: AnimatedSprite2D = $ArmedEffectSprite
 @onready var shooting_timer: Timer = $ShootingTimer
+@onready var pickup_range_area: Area2D = $PickupRange
 @onready var shoot_sfx_player: AudioStreamPlayer = $AudioContainer/ShootSfxPlayer
 @onready var move_sfx_player: AudioStreamPlayer = $AudioContainer/MoveSfxPlayer
 @onready var pickup_sfx_player: AudioStreamPlayer = $AudioContainer/PickupSfxPlayer
@@ -33,6 +34,7 @@ var rapid_buff_time_left: float = 0.0
 var form_buff_time_left: float = 0.0
 var spiral_phase: float = 0.0
 var coins: int = 0
+var character_id: StringName = &"gunslinger"
 
 # 玩家移动速度，单位是像素/秒。
 @export var move_speed: float = 120.0
@@ -50,14 +52,59 @@ var is_dead: bool = false
 
 @export var fire_interval: float =0.18
 @export var bullet_spawn_distance: float = 18.0
+@export var damage: int = 1
+@export var projectile_count: int = 1
+@export var pickup_range: float = 48.0
+@export var luck: float = 0.0
+@export var armor: int = 0
+@export var critical_chance: float = 0.0
+@export var starting_weapon: StringName = &"basic"
+@export var passive: StringName = &"steady_hand"
 
 func _ready() -> void:
 	current_health = maxi(max_health, 1)
 	shooting_timer.one_shot = true
 	shooting_timer.wait_time = _get_effective_fire_interval()
+	_apply_pickup_range()
 	_set_hurt_blink_enabled(false)
 	_update_animation()
 	_update_armed_effect()
+
+
+func apply_character_stats(stats: Dictionary) -> void:
+	character_id = StringName(stats.get("character_id", character_id))
+	move_speed = maxf(float(stats.get("move_speed", move_speed)), 1.0)
+	max_health = maxi(int(stats.get("max_health", max_health)), 1)
+	fire_interval = maxf(float(stats.get("fire_interval", fire_interval)), 0.01)
+	damage = maxi(int(stats.get("damage", damage)), 0)
+	projectile_count = maxi(int(stats.get("projectile_count", projectile_count)), 1)
+	pickup_range = maxf(float(stats.get("pickup_range", pickup_range)), 1.0)
+	luck = clampf(float(stats.get("luck", luck)), 0.0, 1.0)
+	armor = maxi(int(stats.get("armor", armor)), 0)
+	critical_chance = clampf(float(stats.get("critical_chance", critical_chance)), 0.0, 1.0)
+	invincibility_duration = maxf(
+		float(stats.get("invincibility_duration", invincibility_duration)),
+		0.0
+	)
+	bullet_spawn_distance = maxf(
+		float(stats.get("bullet_spawn_distance", bullet_spawn_distance)),
+		0.0
+	)
+	starting_weapon = StringName(stats.get("starting_weapon", starting_weapon))
+	passive = StringName(stats.get("passive", passive))
+	current_health = max_health
+	_apply_pickup_range()
+	_refresh_shooting_timer_wait_time()
+	_update_animation()
+	_update_armed_effect()
+
+
+func _apply_pickup_range() -> void:
+	if pickup_range_area == null:
+		return
+	var range_shape := pickup_range_area.get_node("CollisionShape2D").shape as CircleShape2D
+	if range_shape != null:
+		range_shape.radius = maxf(pickup_range, 1.0)
 
 func _physics_process(delta: float) -> void:
 	_update_invincibility(delta)

@@ -20,7 +20,19 @@
 
 - Added an independent `scene/main_menu.tscn` startup scene.
 - Added title, Start Game, Settings placeholder, and Quit buttons.
-- Start Game opens the existing Game scene; no combat or coin logic was changed.
+- Start Game resets the run and opens the character selection scene before combat.
+
+## Character Data and Selection
+
+- Added `CharacterConfig` and three Resources: Gunslinger, Scout, and Guardian.
+- Added `scene/character_select.tscn`; selection is validated and stored by
+  `GameSession.selected_character_id`.
+- Added per-round cached character-stat resolution with explicit clamps and
+  rounding. Re-resolving a round does not compound relic effects.
+- Player now applies supported resolved attributes and exposes the data-only
+  damage/projectile/luck/armor/critical fields for the future weapon system.
+- Added a dedicated pickup-range Area2D while preserving body-contact pickup
+  and coin collection.
 
 ## Round and Shop Flow
 
