@@ -6,6 +6,7 @@ signal coins_changed(new_amount: int)
 const NORMAL_ANIMATION_PREFIX := &"normal"
 
 const BULLET_scene := preload("res://scene/bullet.tscn")
+const BASIC_WEAPON := preload("res://resourse/weapon/weapon_basic.tres")
 const ARMED_ANIMATION_PREFIX := &"armed"
 const DEFAULT_MOVE_SPEED_MULTIPLIER := 1.0
 const DEFAULT_FIRE_RATE_MULTIPLIER := 1.0
@@ -17,6 +18,7 @@ const WORLD_COLLISION_MASK := 1
 
 @onready var armed_effect_sprite: AnimatedSprite2D = $ArmedEffectSprite
 @onready var shooting_timer: Timer = $ShootingTimer
+@onready var weapon_system: WeaponSystem = $WeaponSystem
 @onready var pickup_range_area: Area2D = $PickupRange
 @onready var shoot_sfx_player: AudioStreamPlayer = $AudioContainer/ShootSfxPlayer
 @onready var move_sfx_player: AudioStreamPlayer = $AudioContainer/MoveSfxPlayer
@@ -65,6 +67,7 @@ func _ready() -> void:
 	current_health = maxi(max_health, 1)
 	shooting_timer.one_shot = true
 	shooting_timer.wait_time = _get_effective_fire_interval()
+	weapon_system.setup(BASIC_WEAPON)
 	_apply_pickup_range()
 	_set_hurt_blink_enabled(false)
 	_update_animation()
@@ -257,7 +260,16 @@ func _fire_bullets(base_direction:Vector2) -> bool:
 		spiral_phase = wrapf(spiral_phase + SPIRAL_PHASE_STEP, 0.0, TAU)
 		return has_spawned_forward_bullet or has_spawned_backward_bullet
 		
-	return _spawn_bullet(base_direction)
+	if weapon_system == null:
+		return _spawn_bullet(base_direction)
+	var spawn_parent := get_tree().current_scene
+	var spawned := weapon_system.fire(
+		global_position + base_direction.normalized() * bullet_spawn_distance,
+		base_direction,
+		spawn_parent,
+		_can_spawn_bullet
+	)
+	return spawned > 0
 	
 func _spawn_bullet(shoot_direction: Vector2) ->bool:
 	if not _can_spawn_bullet(shoot_direction):

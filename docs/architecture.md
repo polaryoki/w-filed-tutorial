@@ -52,6 +52,12 @@ selected character's base values and applies owned relic bonuses once. Player
 receives a copy of those resolved values, including the supported pickup-range
 Area2D size, while the existing movement and shooting orchestration remains in
 Player.
+
+## Independent Weapon System
+
+Phase 3 adds `WeaponConfig` Resources and `WeaponSystem`. Player forwards aim
+and spawn validation to the system, which creates configured Bullet instances;
+Bullet owns projectile speed, range, damage, and piercing for that shot.
 ## Relic System
 
 Relic Resources define display data and effect values. `GameSession.owned_relics` stores IDs and owns atomic coin/relic transactions for the current run; Shop owns purchase UI, while Game recalculates relic effects from Player base attributes at each new round.

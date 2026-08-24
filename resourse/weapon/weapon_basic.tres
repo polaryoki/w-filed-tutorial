@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resourse/weapon/weapon_config.gd" id="1_weapon"]
+
+[resource]
+script = ExtResource("1_weapon")
+id = &"basic"
+display_name = "Basic Weapon"
+damage = 1
+fire_interval = 0.18
+projectile_count = 1
+spread_degrees = 0.0
+projectile_speed = 320.0
+range = 640.0
+piercing = 1
+tags = [&"starter", &"kinetic"]
+upgrade_level = 1

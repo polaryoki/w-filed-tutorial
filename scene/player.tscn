@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bcymmm4fahwbq"]
 
 [ext_resource type="Script" uid="uid://l54wkvrffwfg" path="res://scene/player.gd" id="1_xa75v"]
+[ext_resource type="Script" path="res://scene/weapon_system.gd" id="1_weapon_system"]
 [ext_resource type="Texture2D" uid="uid://8k75mymtknub" path="res://resourse/texture/W.png" id="2_58ae2"]
 [ext_resource type="Shader" uid="uid://cc6tk3pcxwa21" path="res://scene/blink.gdshader" id="2_ivevv"]
 [ext_resource type="Texture2D" uid="uid://bf2pua41fmoct" path="res://resourse/texture/浮游炮.png" id="3_ivevv"]
@@ -413,6 +414,9 @@ frame_progress = 0.36246222
 shape = SubResource("CircleShape2D_qsrtu")
 
 [node name="ShootingTimer" type="Timer" parent="." unique_id=1961291071]
+
+[node name="WeaponSystem" type="Node" parent="." unique_id=1961291074]
+script = ExtResource("1_weapon_system")
 
 [node name="PickupRange" type="Area2D" parent="." unique_id=1961291072]
 collision_layer = 2

@@ -34,6 +34,13 @@
 - Added a dedicated pickup-range Area2D while preserving body-contact pickup
   and coin collection.
 
+## Independent Weapon System
+
+- Added `WeaponConfig` and a basic starter weapon Resource.
+- Added `WeaponSystem` projectile spawning with configurable spread, speed,
+  damage, range, and piercing.
+- Player now delegates bullet construction while retaining input and movement.
+
 ## Round and Shop Flow
 
 - Added `GameSession` Autoload with `current_round`, `current_coins`, and `owned_relics` current-run state.
