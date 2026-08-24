@@ -6,11 +6,14 @@ const CHARACTER_OPTIONS: Array[Resource] = [
 	preload("res://resourse/character/character_scout.tres"),
 	preload("res://resourse/character/character_guardian.tres"),
 ]
+const WEAPON_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/weapon_basic.tres")]
+const SYNERGY_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/synergy_kinetic_pair.tres")]
 
 var current_round: int = 1
 var current_coins: int = 0
 var owned_relics: Array[String] = []
 var selected_character_id: StringName = DEFAULT_CHARACTER_ID
+var equipped_weapon_ids: Array[StringName] = [&"basic"]
 
 var _resolved_character_id: StringName = &""
 var _resolved_round: int = 0
@@ -22,6 +25,7 @@ func reset_run() -> void:
 	current_coins = 0
 	owned_relics.clear()
 	selected_character_id = DEFAULT_CHARACTER_ID
+	equipped_weapon_ids = [&"basic"]
 	_invalidate_character_resolution()
 
 
@@ -54,6 +58,32 @@ func select_character(character_id: StringName) -> bool:
 
 func get_selected_character():
 	return get_character_config(selected_character_id)
+
+func equip_weapon(weapon_id: StringName) -> bool:
+	for weapon in WEAPON_OPTIONS:
+		if weapon.get("id") != weapon_id:
+			continue
+		if weapon_id not in equipped_weapon_ids:
+			equipped_weapon_ids.append(weapon_id)
+		return true
+	return false
+
+func resolve_weapon_synergies() -> Dictionary:
+	var weapons: Array[Resource] = []
+	for weapon_id in equipped_weapon_ids:
+		for weapon in WEAPON_OPTIONS:
+			if weapon.get("id") == weapon_id:
+				weapons.append(weapon)
+	var tags: Array[StringName] = []
+	for weapon in weapons:
+		for tag in weapon.get("tags"):
+			if tag not in tags:
+				tags.append(tag)
+	var active: Array[StringName] = []
+	for synergy in SYNERGY_OPTIONS:
+		if synergy.applies_to_tags(tags):
+			active.append(synergy.get("id"))
+	return {"active_synergies": active, "weapon_count": weapons.size(), "tags": tags}
 
 
 func resolve_character_stats() -> Dictionary:

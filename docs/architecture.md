@@ -58,6 +58,10 @@ Player.
 Phase 3 adds `WeaponConfig` Resources and `WeaponSystem`. Player forwards aim
 and spawn validation to the system, which creates configured Bullet instances;
 Bullet owns projectile speed, range, damage, and piercing for that shot.
+
+Phase 4 adds `WeaponSynergyConfig` and a pure resolver over equipped weapon
+tags. Active synergy IDs are derived for UI feedback and never recursively
+written back into base weapon resources.
 ## Relic System
 
 Relic Resources define display data and effect values. `GameSession.owned_relics` stores IDs and owns atomic coin/relic transactions for the current run; Shop owns purchase UI, while Game recalculates relic effects from Player base attributes at each new round.

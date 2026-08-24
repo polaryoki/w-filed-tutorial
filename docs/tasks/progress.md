@@ -12,6 +12,7 @@ implemented and covered by `tests/phase2_smoke.gd`.
 - [x] Phase 1: stabilize MainMenu -> Game -> Shop -> Game.
 - [x] Phase 2: character Resources, selection flow, and multi-attribute resolver.
 - [x] Phase 3: independent weapon Resource, firing system, and projectile stats.
+- [x] Phase 4: data-driven weapon synergies and non-recursive resolution.
 
 ## Commands run
 
@@ -20,6 +21,7 @@ implemented and covered by `tests/phase2_smoke.gd`.
 - `godot --headless --path . --editor --script res://tests/phase2_smoke.gd`
 - `godot --headless --path . --editor --script res://tests/phase1_smoke.gd`
 - `godot --headless --path . --editor --script res://tests/phase3_smoke.gd`
+- `godot --headless --path . --editor --script res://tests/phase4_smoke.gd`
 
 ## Phase 2 decisions
 
@@ -46,6 +48,12 @@ engine/environment issue rather than a Phase 2 assertion failure.
   construction and spread; Player remains input and movement orchestration.
 - Bullet range and piercing are resolved per projectile and do not mutate
   character stats.
+
+## Phase 4 decisions
+
+- Synergies require a set of weapon tags and are resolved from the equipped set.
+- Resolution applies each matching synergy once from base weapon stats; repeated
+  calls do not compound bonuses.
 
 ## Next step
 

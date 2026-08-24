@@ -4,6 +4,18 @@ extends Node
 const BULLET_SCENE := preload("res://scene/bullet.tscn")
 
 var config: WeaponConfig
+var active_synergy_ids: Array[StringName] = []
+
+func apply_synergy_stats(stats: Dictionary) -> void:
+	active_synergy_ids.clear()
+	for synergy_id in stats.get("active_synergies", []):
+		active_synergy_ids.append(synergy_id)
+	config = config.duplicate(true) if config != null else null
+	if config == null:
+		return
+	config.damage = int(stats.get("damage", config.damage))
+	config.projectile_count = int(stats.get("projectile_count", config.projectile_count))
+	config.fire_interval = float(stats.get("fire_interval", config.fire_interval))
 
 func setup(weapon_config: WeaponConfig) -> void:
 	config = weapon_config

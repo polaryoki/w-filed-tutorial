@@ -41,6 +41,12 @@
   damage, range, and piercing.
 - Player now delegates bullet construction while retaining input and movement.
 
+## Weapon Synergies
+
+- Added tag-based `WeaponSynergyConfig` and the Kinetic Pair definition.
+- Added deterministic, non-recursive synergy resolution and active synergy IDs
+  exposed by `GameSession`.
+
 ## Round and Shop Flow
 
 - Added `GameSession` Autoload with `current_round`, `current_coins`, and `owned_relics` current-run state.

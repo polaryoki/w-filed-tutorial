@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WeaponSynergyConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resourse/weapon/weapon_synergy_config.gd" id="1_synergy"]
+
+[resource]
+script = ExtResource("1_synergy")
+id = &"kinetic_pair"
+display_name = "Kinetic Pair"
+description = "Kinetic and starter weapons fire 10% faster together."
+required_tags = [&"kinetic", &"starter"]
+fire_interval_multiplier = 0.9
