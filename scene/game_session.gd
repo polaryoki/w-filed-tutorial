@@ -6,7 +6,7 @@ const CHARACTER_OPTIONS: Array[Resource] = [
 	preload("res://resourse/character/character_scout.tres"),
 	preload("res://resourse/character/character_guardian.tres"),
 ]
-const WEAPON_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/weapon_basic.tres")]
+const WEAPON_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/weapon_basic.tres"), preload("res://resourse/weapon/weapon_scatter.tres")]
 const SYNERGY_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/synergy_kinetic_pair.tres")]
 
 var current_round: int = 1
@@ -16,6 +16,8 @@ var selected_character_id: StringName = DEFAULT_CHARACTER_ID
 var equipped_weapon_ids: Array[StringName] = [&"basic"]
 var boss_reward_coins: int = 0
 var boss_defeated: bool = false
+var weapon_upgrade_levels: Dictionary = {&"basic": 1}
+var shop_reroll_count: int = 0
 
 var _resolved_character_id: StringName = &""
 var _resolved_round: int = 0
@@ -30,6 +32,8 @@ func reset_run() -> void:
 	equipped_weapon_ids = [&"basic"]
 	boss_reward_coins = 0
 	boss_defeated = false
+	weapon_upgrade_levels = {&"basic": 1}
+	shop_reroll_count = 0
 	_invalidate_character_resolution()
 
 
@@ -71,6 +75,23 @@ func equip_weapon(weapon_id: StringName) -> bool:
 			equipped_weapon_ids.append(weapon_id)
 		return true
 	return false
+
+func get_weapon_upgrade_level(weapon_id: StringName) -> int:
+	return maxi(int(weapon_upgrade_levels.get(weapon_id, 1)), 1)
+
+func upgrade_weapon(weapon_id: StringName, price: int) -> bool:
+	if price <= 0 or current_coins < price or weapon_id not in equipped_weapon_ids:
+		return false
+	current_coins -= price
+	weapon_upgrade_levels[weapon_id] = get_weapon_upgrade_level(weapon_id) + 1
+	return true
+
+func reroll_shop(price: int) -> bool:
+	if price <= 0 or current_coins < price:
+		return false
+	current_coins -= price
+	shop_reroll_count += 1
+	return true
 
 func resolve_weapon_synergies() -> Dictionary:
 	var weapons: Array[Resource] = []

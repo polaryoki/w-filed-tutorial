@@ -78,3 +78,10 @@ Boss battles, selectable characters, multi-attribute character progression, inde
   damage, spawn-round gating, reward idempotence, timeout failure, and round
   transition behavior. Runtime execution remains blocked by the installed
   Godot build crashing in headless mode.
+
+## Phase 6 Shop and run progression
+
+- Added a second weapon offer (`Scatter Shot`) alongside the starter weapon.
+- Added current-run weapon ownership and upgrade levels in `GameSession`.
+- Added atomic weapon purchase, weapon upgrade, and shop reroll transactions.
+- Shop exposes offer/upgrade/reroll methods; no permanent save data was added.

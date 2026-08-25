@@ -8,16 +8,25 @@ const RELIC_OPTIONS: Array[RelicData] = [
 	preload("res://resourse/relic/relic_iron_will.tres"),
 	preload("res://resourse/relic/relic_long_barrel.tres"),
 ]
+const WEAPON_OPTIONS: Array[WeaponConfig] = [
+	preload("res://resourse/weapon/weapon_basic.tres"),
+	preload("res://resourse/weapon/weapon_scatter.tres"),
+]
+const WEAPON_OFFER_PRICE := 12
+const WEAPON_UPGRADE_PRICE := 10
+const REROLL_PRICE := 5
 
 @onready var round_label: Label = $CenterContainer/PanelContainer/MarginContainer/Layout/RoundLabel
 @onready var gold_label: Label = $CenterContainer/PanelContainer/MarginContainer/Layout/GoldLabel
 @onready var continue_button: Button = $CenterContainer/PanelContainer/MarginContainer/Layout/ContinueButton
 @onready var relic_items: VBoxContainer = $CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems
 var displayed_relics: Array[RelicData] = []
+var displayed_weapons: Array[WeaponConfig] = []
 
 func _ready() -> void:
 	round_label.text = "回合 %d" % GameSession.current_round
 	_build_relic_options()
+	_build_weapon_options()
 	_refresh_gold()
 	continue_button.grab_focus()
 
@@ -71,3 +80,33 @@ func _on_continue_button_pressed() -> void:
 	Engine.time_scale = 1.0
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scene/game.tscn")
+
+func _build_weapon_options() -> void:
+	displayed_weapons.clear()
+	for weapon in WEAPON_OPTIONS:
+		if weapon != null and weapon.id not in GameSession.equipped_weapon_ids:
+			displayed_weapons.append(weapon)
+
+func try_buy_weapon(index: int) -> bool:
+	if index < 0 or index >= displayed_weapons.size():
+		return false
+	var weapon := displayed_weapons[index]
+	if not GameSession.try_spend_coins(WEAPON_OFFER_PRICE):
+		return false
+	if not GameSession.equip_weapon(weapon.id):
+		GameSession.current_coins += WEAPON_OFFER_PRICE
+		return false
+	_build_weapon_options()
+	return true
+
+func try_upgrade_weapon(weapon_id: StringName) -> bool:
+	return GameSession.upgrade_weapon(weapon_id, WEAPON_UPGRADE_PRICE)
+
+func try_reroll() -> bool:
+	if not GameSession.reroll_shop(REROLL_PRICE):
+		return false
+	displayed_relics.clear()
+	_build_relic_options()
+	_build_weapon_options()
+	_refresh_gold()
+	return true

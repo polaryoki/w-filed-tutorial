@@ -85,3 +85,10 @@ Future Shop iterations may offer weapon upgrades, character stats, rerolls, lock
 
 Bosses use health-ratio thresholds to enter phases and emit a telegraph before
 each attack. Defeat emits one reward event; timeout emits a failure event.
+
+## Expanded Shop
+
+Shop may offer unequipped weapons, weapon upgrades, and relic rerolls. Weapon
+offers cost 12 coins, upgrades cost 10, and rerolls cost 5. All progression is
+temporary to the current `GameSession` run; failed purchases do not mutate
+inventory or coins.

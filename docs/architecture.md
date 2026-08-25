@@ -84,3 +84,9 @@ The following systems are planned and are not implemented yet. They should be in
 `BossConfig` stores boss-only tuning. `Boss` owns phase and attack timing;
 `Game` is responsible for spawning and transition decisions, while
 `GameSession` remains the owner of temporary reward state.
+
+## Phase 6 progression ownership
+
+`GameSession` stores equipped weapons, temporary upgrade levels, and reroll
+count for the current run. `Shop` owns offer presentation and calls atomic
+transaction methods; `WeaponConfig` remains immutable source data.

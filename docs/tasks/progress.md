@@ -14,6 +14,7 @@ implemented and covered by `tests/phase2_smoke.gd`.
 - [x] Phase 3: independent weapon Resource, firing system, and projectile stats.
 - [x] Phase 4: data-driven weapon synergies and non-recursive resolution.
 - [x] Phase 5: complete Boss round spawn, combat signals, reward, timeout, and Shop transition.
+- [x] Phase 6: weapon offers, weapon upgrades, rerolls, and current-run transaction boundaries.
 
 ## Commands run
 

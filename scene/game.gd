@@ -220,6 +220,9 @@ func _complete_round() -> void:
 	if is_round_transitioning:
 		return
 	if boss_encounter and active_boss != null and not active_boss.is_defeated:
+		# A boss round cannot silently stall when the normal round timer expires.
+		# Treat the elapsed round limit as the explicit boss timeout path.
+		_on_boss_timeout()
 		return
 	is_round_transitioning = true
 	is_result_displayed = true
@@ -228,7 +231,7 @@ func _complete_round() -> void:
 	_change_scene_after_stop("res://scene/shop.tscn")
 
 func _try_spawn_boss_for_round() -> void:
-	if boss_config == null or GameSession.current_round < int(boss_config.get("spawn_round")):
+	if boss_config == null or GameSession.current_round != int(boss_config.get("spawn_round")):
 		return
 	active_boss = Boss.new()
 	active_boss.setup(boss_config)
