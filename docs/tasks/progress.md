@@ -15,6 +15,7 @@ implemented and covered by `tests/phase2_smoke.gd`.
 - [x] Phase 4: data-driven weapon synergies and non-recursive resolution.
 - [x] Phase 5: complete Boss round spawn, combat signals, reward, timeout, and Shop transition.
 - [x] Phase 6: weapon offers, weapon upgrades, rerolls, and current-run transaction boundaries.
+- [x] Phase 7: balance resource validation, Boss HUD feedback, and repeatable smoke validation.
 
 ## Commands run
 
@@ -75,6 +76,18 @@ engine/environment issue rather than a Phase 2 assertion failure.
 
 Design and implement the independent weapon Resource/system in Phase 3 without
 moving weapon behavior into the character resolver.
+
+## Phase 7 decisions
+
+- Balance values remain in Resource assets; HUD reads runtime Boss state only.
+- No persistence, new progression systems, or scene ownership changes were added.
+
+## Final acceptance
+
+- Phase 1-7 smoke scripts all pass editor `--check-only` without parse or load errors.
+- Normal headless execution of the main scene was attempted and remains blocked
+  by the installed Godot 4.7.1 Windows build crashing with signal 11 during
+  runtime initialization. No runtime PASS is claimed from static checks.
 
 ## Phase 5 decisions
 

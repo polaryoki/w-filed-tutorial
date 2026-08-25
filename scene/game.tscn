@@ -218,6 +218,13 @@ offset_bottom = 65.0
 theme_override_fonts/font = ExtResource("6_5g16k")
 text = "Gunslinger"
 
+[node name="BossStatusLabel" type="Label" parent="HUDLayer"]
+offset_left = 38.0
+offset_top = 65.0
+offset_right = 190.0
+offset_bottom = 88.0
+text = ""
+
 [node name="TimeIcon" type="Sprite2D" parent="HUDLayer" unique_id=308990872]
 position = Vector2(19, -17)
 texture = ExtResource("5_sng2h")

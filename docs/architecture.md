@@ -90,3 +90,6 @@ The following systems are planned and are not implemented yet. They should be in
 `GameSession` stores equipped weapons, temporary upgrade levels, and reroll
 count for the current run. `Shop` owns offer presentation and calls atomic
 transaction methods; `WeaponConfig` remains immutable source data.
+
+Phase 7 keeps presentation in `Game` HUD only: Boss status is derived from the
+runtime instance and does not add state ownership or persistence.

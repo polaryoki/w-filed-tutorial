@@ -85,3 +85,14 @@ Boss battles, selectable characters, multi-attribute character progression, inde
 - Added current-run weapon ownership and upgrade levels in `GameSession`.
 - Added atomic weapon purchase, weapon upgrade, and shop reroll transactions.
 - Shop exposes offer/upgrade/reroll methods; no permanent save data was added.
+
+## Phase 7 Balance and presentation
+
+- Added minimal Boss HUD status (`BOSS P<phase> <health>%`) without a UI rewrite.
+- Added repeatable balance/resource smoke validation for Boss, weapon, and core scenes.
+
+## Final acceptance status
+
+All seven smoke scripts pass static editor validation. Full runtime acceptance
+was attempted with the main scene, but the local Godot build crashes before the
+game loop starts; runtime completion is therefore not claimed.

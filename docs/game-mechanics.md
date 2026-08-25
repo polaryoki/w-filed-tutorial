@@ -92,3 +92,6 @@ Shop may offer unequipped weapons, weapon upgrades, and relic rerolls. Weapon
 offers cost 12 coins, upgrades cost 10, and rerolls cost 5. All progression is
 temporary to the current `GameSession` run; failed purchases do not mutate
 inventory or coins.
+
+During a Boss encounter the HUD shows the current phase and health percentage;
+the display is informational and follows the Boss runtime state.

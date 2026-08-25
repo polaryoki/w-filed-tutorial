@@ -46,6 +46,7 @@ const RESULT_OK_BUTTON_TEXT := "结束游戏"
 @onready var coin_count_label: Label = $HUDLayer/CoinCountLabel
 @onready var round_count_label: Label = $HUDLayer/RoundCountLabel
 @onready var character_label: Label = $HUDLayer/CharacterLabel
+@onready var boss_status_label: Label = $HUDLayer/BossStatusLabel
 @onready var time_bar: Sprite2D = $HUDLayer/TimeBar
 @onready var result_dialog: AcceptDialog = $AcceptDialog
 @onready var bgm_player: AudioStreamPlayer = $AudioContainer/BgmPlayer
@@ -157,6 +158,7 @@ func _update_hud() -> void:
 	_update_coin_count_label()
 	_update_round_count_label()
 	_update_character_label()
+	_update_boss_status()
 	_update_time_bar()
 
 
@@ -188,6 +190,15 @@ func _update_character_label() -> void:
 		character_label.text = "Character"
 		return
 	character_label.text = String(character.get("display_name"))
+
+func _update_boss_status() -> void:
+	if boss_status_label == null:
+		return
+	if active_boss == null or not boss_encounter or active_boss.is_defeated:
+		boss_status_label.text = ""
+		return
+	var ratio := clampf(float(active_boss.current_health) / maxf(float(active_boss.config.max_health), 1.0), 0.0, 1.0)
+	boss_status_label.text = "BOSS P%d  %d%%" % [active_boss.current_phase + 1, roundi(ratio * 100.0)]
 	
 # 按倒计时百分比缩放时间条，并修正位置让它始终从左往右缩短。
 func _update_time_bar() -> void:
