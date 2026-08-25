@@ -67,3 +67,14 @@
 ## Scope Boundary
 
 Boss battles, selectable characters, multi-attribute character progression, independent weapons, weapon synergies, rerolls, and permanent progression are planned systems only. They are not implemented in the current build.
+
+## Phase 5 Boss battle foundation
+
+- Added `BossConfig` and the configured Outlaw resource with health, phases,
+  attack modes, telegraph timing, timeout, spawn round, and coin reward.
+- Added independent `Boss` runtime with deterministic phase thresholds,
+  attack telegraph and timeout signals, and one-shot defeat rewards.
+- Added a scene-backed Phase 5 integration harness covering Area2D Bullet
+  damage, spawn-round gating, reward idempotence, timeout failure, and round
+  transition behavior. Runtime execution remains blocked by the installed
+  Godot build crashing in headless mode.

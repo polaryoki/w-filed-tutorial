@@ -13,6 +13,7 @@ implemented and covered by `tests/phase2_smoke.gd`.
 - [x] Phase 2: character Resources, selection flow, and multi-attribute resolver.
 - [x] Phase 3: independent weapon Resource, firing system, and projectile stats.
 - [x] Phase 4: data-driven weapon synergies and non-recursive resolution.
+- [x] Phase 5: complete Boss round spawn, combat signals, reward, timeout, and Shop transition.
 
 ## Commands run
 
@@ -22,6 +23,20 @@ implemented and covered by `tests/phase2_smoke.gd`.
 - `godot --headless --path . --editor --script res://tests/phase1_smoke.gd`
 - `godot --headless --path . --editor --script res://tests/phase3_smoke.gd`
 - `godot --headless --path . --editor --script res://tests/phase4_smoke.gd`
+- `godot --headless --path . --editor --script res://tests/phase5_smoke.gd`
+- `godot --headless --path . --editor --script res://tests/phase5_integration_smoke.gd`
+
+Phase 5 final integration attempt: editor-mode execution reaches the test but
+cannot execute the autoload script as a runtime instance (Godot placeholder
+resource error); non-editor execution crashes the installed Godot build with
+signal 11 before assertions. This is an environment/runtime verification
+blocker, not treated as a passing integration result.
+
+The replacement `tests/phase5_integration.tscn` uses a normal Node lifecycle
+and the real autoload rather than dynamically attaching a GameSession script.
+Its `--editor --check-only` validation passes, but normal headless scene
+execution still crashes with the same Godot signal 11 before `_ready()` can
+complete. Phase 5 remains unverified and is not marked DONE.
 
 ## Phase 2 decisions
 
@@ -59,3 +74,13 @@ engine/environment issue rather than a Phase 2 assertion failure.
 
 Design and implement the independent weapon Resource/system in Phase 3 without
 moving weapon behavior into the character resolver.
+
+## Phase 5 decisions
+
+- Boss behavior is isolated in `Boss` and configured by `BossConfig`; ordinary
+  `EnemyConfig` remains unchanged.
+- Health thresholds select a single current phase without recursive effects.
+- Telegraph, timeout, phase change, and one-shot defeat reward are signals so
+  `Game` can own scene transitions and `GameSession` can own run rewards.
+- Boss spawning is gated by `BossConfig.spawn_round`; defeat credits
+  `GameSession.current_coins` before the existing Shop transition.

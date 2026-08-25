@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BossConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resourse/config/boss_config.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"outlaw"
+display_name = "Outlaw Boss"
+max_health = 100
+phase_thresholds = Array[float]([0.66, 0.33])
+attack_modes = Array[StringName]([&"burst", &"charge", &"enrage"])
+move_speed = 35.0
+attack_interval = 2.0
+telegraph_duration = 0.6
+reward_coins = 25
+spawn_round = 3
+time_limit = 60.0

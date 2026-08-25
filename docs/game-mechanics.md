@@ -80,3 +80,8 @@ Weapon synergies are planned as set-based bonuses, for example matching weapon f
 ### Progression and shop
 
 Future Shop iterations may offer weapon upgrades, character stats, rerolls, locks, and boss rewards. These remain run-only unless a separate permanent-save design is approved.
+
+## Boss round
+
+Bosses use health-ratio thresholds to enter phases and emit a telegraph before
+each attack. Defeat emits one reward event; timeout emits a failure event.

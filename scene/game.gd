@@ -32,6 +32,7 @@ const RESULT_OK_BUTTON_TEXT := "结束游戏"
 
 # 场上允许同时存在的最大敌人数，避免无限堆积。
 @export_range(1, 200, 1, "or_greater") var max_alive_enemies: int = 12
+@export var boss_config: Resource = preload("res://resourse/config/boss_outlaw.tres")
 @export_group("关卡 UI")
 # 关卡倒计时总时长，单位为秒。
 @export_range(1.0, 3600.0, 1.0, "or_greater") var stage_duration: float = 10
@@ -69,6 +70,8 @@ var time_bar_texture_width: float = 0.0
 # 是否已经进入结算状态，避免重复弹出结果窗口。
 var is_result_displayed: bool = false
 var is_round_transitioning: bool = false
+var active_boss: Boss = null
+var boss_encounter: bool = false
 
 # 初始化刷怪系统：缓存出生点、缓存配置、刷出初始敌人并启动定时器。
 func _ready() -> void:
@@ -84,6 +87,7 @@ func _ready() -> void:
 	_setup_hud()
 	_collect_enemy_spawn_points()
 	_collect_enemy_configs()
+	_try_spawn_boss_for_round()
 	_configure_enemy_spawn_timer()
 	_spawn_initial_enemies()
 	_start_enemy_spawn_timer()
@@ -215,11 +219,40 @@ func _check_game_result() -> void:
 func _complete_round() -> void:
 	if is_round_transitioning:
 		return
+	if boss_encounter and active_boss != null and not active_boss.is_defeated:
+		return
 	is_round_transitioning = true
 	is_result_displayed = true
 	GameSession.current_coins = player.get_coins()
 	_stop_world()
 	_change_scene_after_stop("res://scene/shop.tscn")
+
+func _try_spawn_boss_for_round() -> void:
+	if boss_config == null or GameSession.current_round < int(boss_config.get("spawn_round")):
+		return
+	active_boss = Boss.new()
+	active_boss.setup(boss_config)
+	active_boss.position = enemy_spawn_points[0].position if not enemy_spawn_points.is_empty() else Vector2.ZERO
+	enemy_container.add_child(active_boss)
+	boss_encounter = true
+	active_boss.defeated.connect(_on_boss_defeated)
+	active_boss.timed_out.connect(_on_boss_timeout)
+	active_boss.attack_telegraph.connect(_on_boss_telegraph)
+
+func _on_boss_telegraph(_mode: StringName, _duration: float) -> void:
+	if enemy_spawn_timer != null:
+		enemy_spawn_timer.paused = true
+
+func _on_boss_defeated(reward: int) -> void:
+	if not boss_encounter or is_round_transitioning:
+		return
+	GameSession.add_boss_reward(reward)
+	boss_encounter = false
+	_complete_round()
+
+func _on_boss_timeout() -> void:
+	if not is_result_displayed:
+		_show_result_dialog(RESULT_TITLE_LOSE, "Boss battle timed out")
 
 
 # 弹出结算窗口前暂停整个世界，并将焦点交给确定按钮。

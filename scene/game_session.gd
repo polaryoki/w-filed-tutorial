@@ -14,6 +14,8 @@ var current_coins: int = 0
 var owned_relics: Array[String] = []
 var selected_character_id: StringName = DEFAULT_CHARACTER_ID
 var equipped_weapon_ids: Array[StringName] = [&"basic"]
+var boss_reward_coins: int = 0
+var boss_defeated: bool = false
 
 var _resolved_character_id: StringName = &""
 var _resolved_round: int = 0
@@ -26,6 +28,8 @@ func reset_run() -> void:
 	owned_relics.clear()
 	selected_character_id = DEFAULT_CHARACTER_ID
 	equipped_weapon_ids = [&"basic"]
+	boss_reward_coins = 0
+	boss_defeated = false
 	_invalidate_character_resolution()
 
 
@@ -153,6 +157,14 @@ func add_relic(relic_id: String) -> bool:
 		return false
 	owned_relics.append(relic_id)
 	_invalidate_character_resolution()
+	return true
+
+func add_boss_reward(amount: int) -> bool:
+	if amount <= 0 or boss_defeated:
+		return false
+	boss_reward_coins += amount
+	current_coins += amount
+	boss_defeated = true
 	return true
 
 

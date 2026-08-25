@@ -78,3 +78,9 @@ The following systems are planned and are not implemented yet. They should be in
 - Weapons should be independent data-driven Resources/scenes. A weapon owns fire interval, damage, projectile pattern, cooldown, and upgrade data; Player owns input/orchestration rather than one hard-coded weapon implementation.
 - Weapon synergies should be represented by data rules checked when the run's weapon set changes. They should grant resolved bonuses without repeatedly mutating already-resolved stats.
 - Shop should remain an independent scene that presents weapons, relics, character upgrades, and later reroll/lock options. Purchase rules should use the existing current-run currency boundary.
+
+## Boss ownership
+
+`BossConfig` stores boss-only tuning. `Boss` owns phase and attack timing;
+`Game` is responsible for spawning and transition decisions, while
+`GameSession` remains the owner of temporary reward state.
