@@ -91,8 +91,20 @@ Boss battles, selectable characters, multi-attribute character progression, inde
 - Added minimal Boss HUD status (`BOSS P<phase> <health>%`) without a UI rewrite.
 - Added repeatable balance/resource smoke validation for Boss, weapon, and core scenes.
 
-## Final acceptance status
+## Phase 8 XP and level-up loop
 
-All seven smoke scripts pass static editor validation. Full runtime acceptance
-was attempted with the main scene, but the local Godot build crashes before the
-game loop starts; runtime completion is therefore not claimed.
+- Added configured enemy XP rewards and an independent physical XP pickup that
+  works with body contact and Player pickup range without changing Coin logic.
+- Added run-scoped level, XP, scalable thresholds, overflow preservation,
+  consecutive level-ups, pending choices, and upgrade stacks to GameSession.
+- Added six data-driven upgrades: health, movement speed, damage, attack speed,
+  pickup range, and luck.
+- Added level/XP HUD and a paused three-card choice panel. Each choice changes
+  the live Player/WeaponSystem attribute and persists across current-run rounds.
+- Added Phase 8 smoke and scene-backed runtime integration coverage.
+
+## Current acceptance status
+
+Phase 1-8 smoke scripts and all existing Phase 5/8 integration harnesses pass
+real runtime/headless execution with isolated writable `APPDATA`, Dummy audio,
+and the headless OpenGL compatibility renderer. No permanent save was added.

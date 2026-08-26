@@ -2,10 +2,10 @@
 
 ## Current status
 
-Phase 1 current-run flow is implemented. Its editor smoke command passes after
-the test defers work until the startup frame and initializes the autoload test
-context. Phase 2 character data, selection, and per-round stat resolution are
-implemented and covered by `tests/phase2_smoke.gd`.
+Phases 1-8 are implemented. The current build includes run-scoped XP, physical
+XP drops, scalable levels, three-choice upgrades, paused selection, and
+immediate live stat application on top of the established character, weapon,
+relic, Shop, and Boss boundaries.
 
 ## Tasks
 
@@ -16,6 +16,7 @@ implemented and covered by `tests/phase2_smoke.gd`.
 - [x] Phase 5: complete Boss round spawn, combat signals, reward, timeout, and Shop transition.
 - [x] Phase 6: weapon offers, weapon upgrades, rerolls, and current-run transaction boundaries.
 - [x] Phase 7: balance resource validation, Boss HUD feedback, and repeatable smoke validation.
+- [x] Phase 8: run-scoped XP, levels, physical XP drops, and paused three-choice upgrades.
 
 ## Commands run
 
@@ -27,18 +28,10 @@ implemented and covered by `tests/phase2_smoke.gd`.
 - `godot --headless --path . --editor --script res://tests/phase4_smoke.gd`
 - `godot --headless --path . --editor --script res://tests/phase5_smoke.gd`
 - `godot --headless --path . --editor --script res://tests/phase5_integration_smoke.gd`
-
-Phase 5 final integration attempt: editor-mode execution reaches the test but
-cannot execute the autoload script as a runtime instance (Godot placeholder
-resource error); non-editor execution crashes the installed Godot build with
-signal 11 before assertions. This is an environment/runtime verification
-blocker, not treated as a passing integration result.
-
-The replacement `tests/phase5_integration.tscn` uses a normal Node lifecycle
-and the real autoload rather than dynamically attaching a GameSession script.
-Its `--editor --check-only` validation passes, but normal headless scene
-execution still crashes with the same Godot signal 11 before `_ready()` can
-complete. Phase 5 remains unverified and is not marked DONE.
+- `godot <compatible-headless-options> --script res://tests/phase8_smoke.gd`
+- `godot <compatible-headless-options> --scene res://tests/phase8_integration.tscn`
+- Phase 1-8 smoke and all Phase 5/8 integrations were run with isolated
+  `APPDATA`, Dummy audio, headless display, `gl_compatibility`, and OpenGL 3.
 
 ## Phase 2 decisions
 
@@ -54,10 +47,9 @@ complete. Phase 5 remains unverified and is not marked DONE.
 
 ## Known environment risk
 
-The installed Godot 4.7.1 Windows build crashes in this workspace when running
-custom SceneTree smoke scripts without `--editor`. The requested editor smoke
-command and editor import/check complete with exit code 0; the crash is an
-engine/environment issue rather than a Phase 2 assertion failure.
+Godot 4.7.1 still logs a Windows root-certificate-store warning. Isolated
+`APPDATA` plus Dummy audio and headless OpenGL compatibility avoids the former
+runtime crash and all current tests exit successfully.
 
 ## Phase 3 decisions
 
@@ -74,8 +66,7 @@ engine/environment issue rather than a Phase 2 assertion failure.
 
 ## Next step
 
-Design and implement the independent weapon Resource/system in Phase 3 without
-moving weapon behavior into the character resolver.
+Phase 8 is closed. Phase 9 has not been designed or started.
 
 ## Phase 7 decisions
 
@@ -85,9 +76,21 @@ moving weapon behavior into the character resolver.
 ## Final acceptance
 
 - Phase 1-7 smoke scripts all pass editor `--check-only` without parse or load errors.
-- Normal headless execution of the main scene was attempted and remains blocked
-  by the installed Godot 4.7.1 Windows build crashing with signal 11 during
-  runtime initialization. No runtime PASS is claimed from static checks.
+- Phase 1-7 smoke scripts and both Phase 5 integration harnesses pass real
+  runtime/headless execution when Godot uses an isolated writable `APPDATA`,
+  Dummy audio, and the headless OpenGL compatibility renderer.
+- The remaining root-certificate-store warning is environmental and does not
+  affect the local runtime suite result.
+
+## Phase 5 runtime regression fix
+
+- Dynamically constructed Boss instances now listen for the Bullet collision
+  layer, matching the existing Bullet/Enemy damage contract used in Game.
+- Boss timeout is terminal and emits exactly once rather than once per frame.
+- Runtime tests now set up Boss configuration before tree entry, wait for the
+  correct physics/process frames, and observe signals through persistent test
+  state. Phase 3/4 runtime smoke tests validate loaded scripts without trying
+  to reload scripts that already have live instances.
 
 ## Phase 5 decisions
 
@@ -98,3 +101,23 @@ moving weapon behavior into the character resolver.
   `Game` can own scene transitions and `GameSession` can own run rewards.
 - Boss spawning is gated by `BossConfig.spawn_round`; defeat credits
   `GameSession.current_coins` before the existing Shop transition.
+
+## Phase 8 decisions
+
+- GameSession owns XP, thresholds, queued level-ups, offers, and chosen upgrade
+  stacks; no permanent or cross-run state was introduced.
+- XP uses a dedicated physical pickup while reusing the existing Pickup layer
+  and Player pickup-range collision contract. Coin behavior remains unchanged.
+- Upgrade Resources are immutable; character/relic stats resolve first, then
+  Phase 8 stacks. Live choices update Player and WeaponSystem immediately.
+- Game pauses the scene tree for choices without changing `Engine.time_scale`;
+  result dialogs and scene transitions retain their existing terminal control.
+
+## Phase 8 runtime verification
+
+- Phase 1-8 smoke scripts passed with isolated `APPDATA`, Dummy audio, headless
+  display, `gl_compatibility`, and OpenGL 3.
+- `tests/phase5_integration.tscn`, `phase5_integration_smoke.gd`, and
+  `tests/phase8_integration.tscn` passed under the same real runtime setup.
+- The Windows root-certificate-store warning remains environmental and does
+  not change test exit codes.

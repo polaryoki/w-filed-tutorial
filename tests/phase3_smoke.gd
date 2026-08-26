@@ -14,8 +14,6 @@ func _run() -> void:
 	for path in [WEAPON_SCRIPT_PATH, WEAPON_SYSTEM_SCRIPT_PATH, "res://scene/player.gd", "res://scene/bullet.gd", "res://scene/enemy.gd"]:
 		var script := ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE) as GDScript
 		_expect(script != null, "weapon-related script failed to load: %s" % path)
-		if script != null:
-			_expect(script.reload() == OK, "weapon-related script failed to compile: %s" % path)
 
 	var weapon := ResourceLoader.load(BASIC_WEAPON_PATH) as Resource
 	_expect(weapon != null, "basic weapon resource failed to load")

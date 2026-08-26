@@ -4,6 +4,7 @@ const BossConfigScript = preload("res://resourse/config/boss_config.gd")
 const BossScript = preload("res://scene/boss.gd")
 
 var failures: Array[String] = []
+var defeated_count := 0
 
 func _initialize() -> void:
 	var config = load("res://resourse/config/boss_outlaw.tres")
@@ -15,7 +16,6 @@ func _initialize() -> void:
 	var boss = BossScript.new()
 	get_root().add_child(boss)
 	boss.call("setup", config)
-	var defeated_count := 0
 	boss.defeated.connect(func(_reward: int): defeated_count += 1)
 	boss.call("apply_damage", 40)
 	if boss.current_phase != 1: failures.append("damage did not advance boss phase")

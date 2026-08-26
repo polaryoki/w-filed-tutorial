@@ -95,3 +95,20 @@ inventory or coins.
 
 During a Boss encounter the HUD shows the current phase and health percentage;
 the display is informational and follows the Boss runtime state.
+
+## Experience and in-run level-ups
+
+- Every ordinary enemy drops one XP entity using its configured
+  `experience_reward`; this is independent of its coin and buff-drop rolls.
+- Player body contact or the existing pickup-range Area2D collects XP.
+- Runs begin at level 1 with `0 / 5 XP`. Each next-level threshold is
+  `5 + (current level - 1) * 3`; overflow remains after leveling and a large
+  grant can queue several choices.
+- A queued level pauses combat and shows three distinct random upgrades. One
+  choice is applied immediately. Consecutive queued levels remain paused until
+  every choice is resolved, then the original combat round resumes.
+- The initial upgrade pool grants max health, movement speed, damage, attack
+  speed, pickup range, or luck. Stacks persist only for the current run and are
+  reapplied after character and relic resolution in later rounds.
+- Result dialogs, Boss timeout/defeat, Shop transitions, and Game Over remain
+  separate terminal flows and take priority over level-up presentation.

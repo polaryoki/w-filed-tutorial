@@ -1,6 +1,8 @@
 extends CharacterBody2D
 class_name Player
 
+const UpgradeConfigScript = preload("res://resourse/progression/upgrade_config.gd")
+
 signal coins_changed(new_amount: int)
 
 const NORMAL_ANIMATION_PREFIX := &"normal"
@@ -68,10 +70,39 @@ func _ready() -> void:
 	shooting_timer.one_shot = true
 	shooting_timer.wait_time = _get_effective_fire_interval()
 	weapon_system.setup(BASIC_WEAPON)
+	weapon_system.set_runtime_damage(damage)
 	_apply_pickup_range()
 	_set_hurt_blink_enabled(false)
 	_update_animation()
 	_update_armed_effect()
+
+
+func apply_level_upgrade(upgrade: Resource) -> bool:
+	if upgrade == null:
+		return false
+	var value := float(upgrade.get("effect_value"))
+	match int(upgrade.get("effect_type")):
+		UpgradeConfigScript.EffectType.MAX_HEALTH:
+			var health_gain := maxi(roundi(value), 1)
+			max_health += health_gain
+			current_health += health_gain
+		UpgradeConfigScript.EffectType.MOVE_SPEED_MULTIPLIER:
+			move_speed *= maxf(value, 0.01)
+		UpgradeConfigScript.EffectType.DAMAGE:
+			damage += maxi(roundi(value), 1)
+			if weapon_system != null:
+				weapon_system.set_runtime_damage(damage)
+		UpgradeConfigScript.EffectType.ATTACK_SPEED_MULTIPLIER:
+			fire_interval /= maxf(value, 0.01)
+			_refresh_shooting_timer_wait_time()
+		UpgradeConfigScript.EffectType.PICKUP_RANGE_MULTIPLIER:
+			pickup_range *= maxf(value, 0.01)
+			_apply_pickup_range()
+		UpgradeConfigScript.EffectType.LUCK:
+			luck = clampf(luck + value, 0.0, 1.0)
+		_:
+			return false
+	return true
 
 
 func apply_character_stats(stats: Dictionary) -> void:
@@ -100,6 +131,8 @@ func apply_character_stats(stats: Dictionary) -> void:
 	_refresh_shooting_timer_wait_time()
 	_update_animation()
 	_update_armed_effect()
+	if weapon_system != null:
+		weapon_system.set_runtime_damage(damage)
 
 
 func _apply_pickup_range() -> void:

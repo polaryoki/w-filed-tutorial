@@ -93,3 +93,26 @@ transaction methods; `WeaponConfig` remains immutable source data.
 
 Phase 7 keeps presentation in `Game` HUD only: Boss status is derived from the
 runtime instance and does not add state ownership or persistence.
+
+## Phase 8 experience and level-up ownership
+
+`EnemyConfig` supplies XP reward data and `Enemy` spawns an independent
+`ExperiencePickup` on death. The pickup uses the existing Pickup collision
+layer and Player pickup-range contract, but credits XP directly through the
+`GameSession` run-state boundary instead of changing Player ownership.
+
+`GameSession` owns level, XP, thresholds, pending choices, current offers, and
+chosen upgrade stacks. It resolves those stacks after character and relic
+stats, keeping Resources immutable and preserving upgrades between combat
+rounds. `Game` owns the paused three-card presentation and arbitrates it against
+result/transition state. `Player` applies the selected live attribute change;
+`WeaponSystem` receives resolved runtime damage for projectile construction.
+
+```text
+EnemyConfig -> Enemy -> ExperiencePickup -> GameSession
+                                            | XP/level signals
+                                            v
+                                     Game LevelUpPanel
+                                            | selection
+                   UpgradeConfig -> GameSession stacks -> Player/WeaponSystem
+```

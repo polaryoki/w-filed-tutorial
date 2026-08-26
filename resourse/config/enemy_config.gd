@@ -72,6 +72,10 @@ var coin_drop_chance: float = 1.0
 @export_range(1, 999, 1, "or_greater")
 var coin_value: int = 1
 
+@export_group("Experience")
+@export_range(1, 999, 1, "or_greater")
+var experience_reward: int = 1
+
 # 当前敌人允许掉落的道具配置列表；为空时表示该敌人不会掉落道具。
 @export var pickup_drop_configs: Array[PickupConfig] = [
 	preload("res://resourse/config/pickup_speed.tres"),

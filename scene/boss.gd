@@ -15,6 +15,7 @@ var current_phase: int = 0
 var attack_cooldown: float = 0.0
 var elapsed: float = 0.0
 var is_defeated: bool = false
+var is_timed_out: bool = false
 
 func setup(boss_config: Resource) -> void:
 	config = boss_config
@@ -23,10 +24,13 @@ func setup(boss_config: Resource) -> void:
 	attack_cooldown = 0.0
 	elapsed = 0.0
 	is_defeated = false
+	is_timed_out = false
 
 func _ready() -> void:
 	monitoring = true
 	monitorable = true
+	# Bullets use layer 16; dynamically spawned bosses must listen on that layer.
+	collision_mask = 16
 	var shape_node := CollisionShape2D.new()
 	var circle := CircleShape2D.new()
 	circle.radius = 18.0
@@ -37,11 +41,12 @@ func _ready() -> void:
 		setup(config)
 
 func _process(delta: float) -> void:
-	if is_defeated or config == null:
+	if is_defeated or is_timed_out or config == null:
 		return
 	elapsed += delta
 	attack_cooldown = maxf(attack_cooldown - delta, 0.0)
 	if config.time_limit > 0.0 and elapsed >= config.time_limit:
+		is_timed_out = true
 		timed_out.emit()
 		return
 	if attack_cooldown <= 0.0:

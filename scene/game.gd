@@ -47,7 +47,16 @@ const RESULT_OK_BUTTON_TEXT := "结束游戏"
 @onready var round_count_label: Label = $HUDLayer/RoundCountLabel
 @onready var character_label: Label = $HUDLayer/CharacterLabel
 @onready var boss_status_label: Label = $HUDLayer/BossStatusLabel
+@onready var level_label: Label = $HUDLayer/LevelLabel
+@onready var xp_bar: ProgressBar = $HUDLayer/XPBar
+@onready var xp_label: Label = $HUDLayer/XPLabel
 @onready var time_bar: Sprite2D = $HUDLayer/TimeBar
+@onready var level_up_panel: PanelContainer = $LevelUpLayer/LevelUpPanel
+@onready var level_up_buttons: Array[Button] = [
+	$LevelUpLayer/LevelUpPanel/Margin/VBox/Options/Option1,
+	$LevelUpLayer/LevelUpPanel/Margin/VBox/Options/Option2,
+	$LevelUpLayer/LevelUpPanel/Margin/VBox/Options/Option3,
+]
 @onready var result_dialog: AcceptDialog = $AcceptDialog
 @onready var bgm_player: AudioStreamPlayer = $AudioContainer/BgmPlayer
 @onready var result_win_sfx_player: AudioStreamPlayer = $AudioContainer/ResultWinSfxPlayer
@@ -73,6 +82,7 @@ var is_result_displayed: bool = false
 var is_round_transitioning: bool = false
 var active_boss: Boss = null
 var boss_encounter: bool = false
+var current_level_up_options: Array[Resource] = []
 
 # 初始化刷怪系统：缓存出生点、缓存配置、刷出初始敌人并启动定时器。
 func _ready() -> void:
@@ -85,6 +95,7 @@ func _ready() -> void:
 	if player != null and not player.coins_changed.is_connected(_on_player_coins_changed):
 		player.coins_changed.connect(_on_player_coins_changed)
 	_configure_result_dialog()
+	_configure_level_up_ui()
 	_setup_hud()
 	_collect_enemy_spawn_points()
 	_collect_enemy_configs()
@@ -92,9 +103,8 @@ func _ready() -> void:
 	_configure_enemy_spawn_timer()
 	_spawn_initial_enemies()
 	_start_enemy_spawn_timer()
-	print("stage_duration =", stage_duration)
-	print("stage_time_left =", stage_time_left)
-	print("paused =", get_tree().paused)
+	if GameSession.pending_level_ups > 0:
+		call_deferred("_show_next_level_up_choice")
 
 func _apply_character_stats() -> void:
 	var resolved_stats := GameSession.resolve_character_stats()
@@ -128,6 +138,18 @@ func _configure_result_dialog() -> void:
 		result_dialog.close_requested.connect(_on_result_dialog_exit_requested)
 	if not result_dialog.canceled.is_connected(_on_result_dialog_exit_requested):
 		result_dialog.canceled.connect(_on_result_dialog_exit_requested)
+
+
+func _configure_level_up_ui() -> void:
+	level_up_panel.hide()
+	for index in level_up_buttons.size():
+		var button := level_up_buttons[index]
+		button.pressed.connect(_on_level_up_option_pressed.bind(index))
+	if not GameSession.experience_changed.is_connected(_on_experience_changed):
+		GameSession.experience_changed.connect(_on_experience_changed)
+	if not GameSession.level_up_queued.is_connected(_on_level_up_queued):
+		GameSession.level_up_queued.connect(_on_level_up_queued)
+	_on_experience_changed(GameSession.current_xp, GameSession.xp_to_next_level, GameSession.current_level)
 		
 # 缓存时间条的初始尺寸信息，并刷新一次开场 HUD。
 func _setup_hud() -> void:
@@ -159,7 +181,59 @@ func _update_hud() -> void:
 	_update_round_count_label()
 	_update_character_label()
 	_update_boss_status()
+	_on_experience_changed(GameSession.current_xp, GameSession.xp_to_next_level, GameSession.current_level)
 	_update_time_bar()
+
+
+func _on_experience_changed(current_xp: int, next_level_xp: int, current_level: int) -> void:
+	if level_label != null:
+		level_label.text = "Lv %d" % current_level
+	if xp_bar != null:
+		xp_bar.max_value = maxi(next_level_xp, 1)
+		xp_bar.value = current_xp
+	if xp_label != null:
+		xp_label.text = "%d / %d XP" % [current_xp, next_level_xp]
+
+
+func _on_level_up_queued(_new_levels: int) -> void:
+	if is_result_displayed or is_round_transitioning or level_up_panel.visible:
+		return
+	_show_next_level_up_choice()
+
+
+func _show_next_level_up_choice() -> void:
+	if is_result_displayed or is_round_transitioning or GameSession.pending_level_ups <= 0:
+		return
+	current_level_up_options = GameSession.roll_level_up_options(random_generator)
+	if current_level_up_options.size() != 3:
+		push_error("Level-up pool could not provide three distinct options")
+		return
+	for index in level_up_buttons.size():
+		var upgrade := current_level_up_options[index]
+		level_up_buttons[index].text = "%s\n%s" % [upgrade.get("display_name"), upgrade.get("description")]
+	level_up_panel.show()
+	get_tree().paused = true
+	level_up_buttons[0].grab_focus()
+
+
+func choose_level_up_option(index: int) -> bool:
+	if index < 0 or index >= current_level_up_options.size():
+		return false
+	var upgrade_id := StringName(current_level_up_options[index].get("id"))
+	var upgrade := GameSession.apply_level_upgrade(upgrade_id)
+	if upgrade == null or not player.apply_level_upgrade(upgrade):
+		return false
+	current_level_up_options.clear()
+	if GameSession.pending_level_ups > 0:
+		_show_next_level_up_choice()
+	else:
+		level_up_panel.hide()
+		get_tree().paused = false
+	return true
+
+
+func _on_level_up_option_pressed(index: int) -> void:
+	choose_level_up_option(index)
 
 
 # 将玩家当前生命值显示为"x 数字"的形式。
@@ -286,6 +360,8 @@ func _show_result_dialog(result_title: String, result_message: String) -> void:
 		
 # 统一停止刷怪、冻结场景树，让结算窗口成为唯一可交互内容。
 func _stop_world() -> void:
+	level_up_panel.hide()
+	current_level_up_options.clear()
 	enemy_spawn_timer.stop()
 	player.stop_runtime_audio()
 	Engine.time_scale = 0.0

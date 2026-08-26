@@ -7,6 +7,7 @@ const BulletScene = preload("res://scene/bullet.tscn")
 var failures: Array[String] = []
 var defeats := 0
 var telegraphs := 0
+var timeouts := 0
 
 func _ready() -> void:
 	call_deferred("_run")
@@ -23,6 +24,7 @@ func _run() -> void:
 	config.spawn_round = 3
 	config.max_health = 50
 	config.reward_coins = 25
+	config.attack_interval = 0.01
 	var container := Node2D.new()
 	container.name = "EnemyContainer"
 	add_child(container)
@@ -38,9 +40,13 @@ func _run() -> void:
 	await get_tree().physics_frame
 	if boss.current_health >= config.max_health:
 		failures.append("Bullet did not damage Boss through Area2D collision")
-	boss.apply_damage(40)
+	# The bullet already dealt 20 damage (50 -> 30); one more damage remains in phase 1.
+	boss.apply_damage(1)
 	if boss.current_phase != 1:
 		failures.append("Boss phase did not transition at HP threshold")
+	await get_tree().create_timer(0.1).timeout
+	if telegraphs == 0:
+		failures.append("Boss attack telegraph was not emitted")
 	boss.apply_damage(100)
 	boss.apply_damage(100)
 	if defeats != 1:
@@ -49,18 +55,15 @@ func _run() -> void:
 		failures.append("Boss reward did not reach GameSession")
 	if session.add_boss_reward(config.reward_coins):
 		failures.append("Boss reward was paid twice")
-	await get_tree().create_timer(0.1).timeout
-	if telegraphs == 0:
-		failures.append("Boss attack telegraph was not emitted")
 	var timeout_config = ConfigScript.new()
 	timeout_config.time_limit = 0.01
 	var timeout_boss = BossScript.new()
-	container.add_child(timeout_boss)
 	timeout_boss.setup(timeout_config)
-	var timed_out := false
-	timeout_boss.timed_out.connect(func(): timed_out = true)
-	await get_tree().create_timer(0.05).timeout
-	if not timed_out or session.current_coins != 35:
+	timeout_boss.timed_out.connect(func(): timeouts += 1)
+	container.add_child(timeout_boss)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.1).timeout
+	if timeouts == 0 or session.current_coins != 35:
 		failures.append("Boss timeout incorrectly rewarded or did not fire")
 	if failures.is_empty():
 		print("Phase 5 integration runtime passed")

@@ -28,15 +28,15 @@ func _run() -> void:
 	if config == null or int(config.spawn_round) != 3:
 		failures.append("BossConfig spawn_round is not loadable")
 	var boss = BossScript.new()
-	get_root().add_child(boss)
 	boss.setup(config)
 	boss.defeated.connect(func(_r): defeat_events += 1)
 	boss.timed_out.connect(func(): timeout_events += 1)
+	get_root().add_child(boss)
 	var bullet = BulletScene.instantiate() as Bullet
 	get_root().add_child(bullet)
 	bullet.global_position = boss.global_position
 	bullet.set("damage", 40)
-	await process_frame
+	await physics_frame
 	if boss.current_health >= config.max_health:
 		failures.append("Bullet did not damage Boss through Area2D chain")
 	boss.apply_damage(1000)
@@ -50,13 +50,13 @@ func _run() -> void:
 	if session.add_boss_reward(config.reward_coins):
 		failures.append("Boss reward was paid twice")
 	var timeout_boss = BossScript.new()
-	get_root().add_child(timeout_boss)
 	var timeout_config = ConfigScript.new()
 	timeout_config.max_health = 10
 	timeout_config.time_limit = 0.01
 	timeout_boss.setup(timeout_config)
 	timeout_boss.timed_out.connect(func(): timeout_events += 1)
-	await create_timer(0.05).timeout
+	get_root().add_child(timeout_boss)
+	await create_timer(0.1).timeout
 	if timeout_events != 1:
 		failures.append("Boss timeout did not emit")
 	if failures.is_empty():

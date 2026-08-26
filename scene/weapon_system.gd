@@ -5,6 +5,7 @@ const BULLET_SCENE := preload("res://scene/bullet.tscn")
 
 var config: WeaponConfig
 var active_synergy_ids: Array[StringName] = []
+var runtime_damage: int = -1
 
 func apply_synergy_stats(stats: Dictionary) -> void:
 	active_synergy_ids.clear()
@@ -20,6 +21,9 @@ func apply_synergy_stats(stats: Dictionary) -> void:
 func setup(weapon_config: WeaponConfig) -> void:
 	config = weapon_config
 
+func set_runtime_damage(value: int) -> void:
+	runtime_damage = maxi(value, 1)
+
 func get_fire_interval() -> float:
 	return config.resolved_stats()["fire_interval"] if config != null else 0.18
 
@@ -27,6 +31,8 @@ func fire(origin: Vector2, direction: Vector2, parent: Node, can_spawn: Callable
 	if config == null or parent == null or direction == Vector2.ZERO:
 		return 0
 	var stats := config.resolved_stats()
+	if runtime_damage > 0:
+		stats["damage"] = runtime_damage
 	var count := int(stats["projectile_count"])
 	var spread := deg_to_rad(float(stats["spread_degrees"]))
 	var spawned := 0

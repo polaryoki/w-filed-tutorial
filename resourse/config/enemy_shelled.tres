@@ -18,4 +18,5 @@ enemy_frames = ExtResource("1_wt511")
 pickup_drop_chance = 0.75
 coin_drop_chance = 1.0
 coin_value = 2
+experience_reward = 2
 metadata/_custom_type_script = "uid://dg4jha8xqgntl"

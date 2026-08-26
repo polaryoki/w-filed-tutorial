@@ -7,6 +7,7 @@ const BLINK_ENABLED_SHADER_PARAMETER := &"blink_enabled"
 
 const PICKUP_scene := preload("res://scene/pickup.tscn")
 const COIN_SCENE := preload("res://scene/coin.tscn")
+const EXPERIENCE_PICKUP_SCENE := preload("res://scene/experience_pickup.tscn")
 
 const EXPLOSION_QUERY_MAX_RESULTS := 16
 
@@ -259,6 +260,7 @@ func _die() -> void:
 	touch_damage_area.set_deferred("monitoring", false)
 	touch_damage_area.set_deferred("monitorable", false)
 	_try_drop_coin()
+	_drop_experience()
 	_try_drop_pickup()
 	_start_death_sequence()
 	
@@ -455,6 +457,24 @@ func _spawn_dropped_coin(coin_value: int, spawn_position: Vector2) -> void:
 	coin_instance.setup(coin_value)
 	drop_parent.add_child(coin_instance)
 	coin_instance.global_position = spawn_position
+
+
+func _drop_experience() -> void:
+	if config == null or config.experience_reward <= 0:
+		return
+	call_deferred("_spawn_dropped_experience", config.experience_reward, global_position)
+
+
+func _spawn_dropped_experience(experience_value: int, spawn_position: Vector2) -> void:
+	var drop_parent := get_parent()
+	if drop_parent == null:
+		return
+	var experience := EXPERIENCE_PICKUP_SCENE.instantiate() as Area2D
+	if experience == null:
+		return
+	experience.setup(experience_value)
+	drop_parent.add_child(experience)
+	experience.global_position = spawn_position
 
 
 # 死亡动画播放完成后销毁敌人实例。
