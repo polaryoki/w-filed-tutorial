@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WaveConfig" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resourse/wave/wave_config.gd" id="1"]
+[ext_resource type="Resource" path="res://resourse/config/enemy_basic.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"wave_1"
+wave_number = 1
+duration = 30.0
+spawn_budget = 12
+spawn_interval = 1.5
+simultaneous_cap = 6
+enemy_entries = [{"enemy_config": ExtResource("2"), "weight": 1.0}]
+completion_coins = 2

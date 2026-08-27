@@ -116,3 +116,11 @@ EnemyConfig -> Enemy -> ExperiencePickup -> GameSession
                                             | selection
                    UpgradeConfig -> GameSession stacks -> Player/WeaponSystem
 ```
+
+## Phase 9 wave ownership
+
+`WaveConfig` resources define ordinary-wave pacing and weighted enemy pools.
+`WaveDirector` is pure runtime state for time, budget, cap, and defeat progress.
+`Game` connects requests to the existing EnemyContainer, confirms Enemy
+creation/defeat, updates the existing HUD, and owns Shop transitions. Boss
+rounds retain their dedicated timer path.

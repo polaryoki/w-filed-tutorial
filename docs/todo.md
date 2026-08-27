@@ -94,3 +94,21 @@ The following roadmap is ordered from foundational systems to larger gameplay fe
 - Meta-progression and unlocks.
 - More complex enemy factions and multi-stage bosses.
 - Online features or external plugins.
+
+## Active roadmap after Phase 8
+
+The original Phase 1-7 roadmap above is historical. Current planning continues
+in `docs/development-roadmap.md`; use `docs/continuation.md` as the next-session
+entry point.
+
+Immediate priority:
+
+1. Phase 9 data-driven WaveConfig and WaveDirector.
+2. Preserve Phase 8 XP/level-up pause behavior during wave timing.
+3. Add deterministic wave/runtime integration tests before content expansion.
+
+Later phases cover real multi-weapon builds, Shop combining, item tradeoffs,
+enemy composition, an original industrial-tactical presentation pass, finite
+run milestones, and final balance/performance verification. Permanent saves,
+meta progression, networking, achievements, advertising, and purchases remain
+out of scope until explicitly approved.

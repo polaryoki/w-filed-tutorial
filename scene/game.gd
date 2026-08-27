@@ -1,5 +1,8 @@
 extends Node2D
 
+const WaveDirectorScript = preload("res://scene/wave_director.gd")
+const DEFAULT_WAVE_CONFIGS: Array[Resource] = [preload("res://resourse/wave/wave_1.tres"), preload("res://resourse/wave/wave_2.tres"), preload("res://resourse/wave/wave_3.tres")]
+
 const RESULT_TITLE_WIN := "你赢了"
 const RESULT_TITLE_LOSE := "你输了"
 const RESULT_MESSAGE_WIN := "你成功坚持到了倒计时结束。"
@@ -33,6 +36,7 @@ const RESULT_OK_BUTTON_TEXT := "结束游戏"
 # 场上允许同时存在的最大敌人数，避免无限堆积。
 @export_range(1, 200, 1, "or_greater") var max_alive_enemies: int = 12
 @export var boss_config: Resource = preload("res://resourse/config/boss_outlaw.tres")
+@export var wave_configs: Array[Resource] = DEFAULT_WAVE_CONFIGS
 @export_group("关卡 UI")
 # 关卡倒计时总时长，单位为秒。
 @export_range(1.0, 3600.0, 1.0, "or_greater") var stage_duration: float = 10
@@ -83,6 +87,8 @@ var is_round_transitioning: bool = false
 var active_boss: Boss = null
 var boss_encounter: bool = false
 var current_level_up_options: Array[Resource] = []
+var wave_director
+var wave_config: Resource
 
 # 初始化刷怪系统：缓存出生点、缓存配置、刷出初始敌人并启动定时器。
 func _ready() -> void:
@@ -100,9 +106,10 @@ func _ready() -> void:
 	_collect_enemy_spawn_points()
 	_collect_enemy_configs()
 	_try_spawn_boss_for_round()
+	_configure_wave_director()
 	_configure_enemy_spawn_timer()
-	_spawn_initial_enemies()
-	_start_enemy_spawn_timer()
+	if boss_encounter:
+		_start_enemy_spawn_timer()
 	if GameSession.pending_level_ups > 0:
 		call_deferred("_show_next_level_up_choice")
 
@@ -121,8 +128,9 @@ func _process(delta: float) -> void:
 	if is_result_displayed:
 		return
 
-	_update_stage_timer(delta)
-	_update_spawn_interval()
+	if not boss_encounter and wave_director != null:
+		wave_director.advance(delta, random_generator)
+	stage_time_left = wave_director.time_left if wave_director != null and not boss_encounter else stage_time_left
 	_update_hud()
 	_check_game_result()
 	
@@ -253,7 +261,10 @@ func _on_player_coins_changed(new_amount: int) -> void:
 func _update_round_count_label() -> void:
 	if round_count_label == null:
 		return
-	round_count_label.text = "Round %d" % GameSession.current_round
+	if wave_director != null and not boss_encounter:
+		round_count_label.text = "Wave %d  %ds  Kills %d/%d" % [GameSession.current_round, ceili(wave_director.time_left), wave_director.defeated_count, wave_director.spawned_count]
+	else:
+		round_count_label.text = "Round %d" % GameSession.current_round
 
 
 func _update_character_label() -> void:
@@ -277,8 +288,9 @@ func _update_boss_status() -> void:
 # 按倒计时百分比缩放时间条，并修正位置让它始终从左往右缩短。
 func _update_time_bar() -> void:
 	var fill_ratio := 0.0
-	if stage_duration > 0.0:
-		fill_ratio = clampf(stage_time_left / stage_duration, 0.0, 1.0)
+	var total_duration := float(wave_config.get("duration")) if wave_config != null and not boss_encounter else stage_duration
+	if total_duration > 0.0:
+		fill_ratio = clampf(stage_time_left / total_duration, 0.0, 1.0)
 
 	time_bar.scale.x = time_bar_full_scale_x * fill_ratio
 
@@ -297,6 +309,8 @@ func _check_game_result() -> void:
 		_show_result_dialog(RESULT_TITLE_LOSE, RESULT_MESSAGE_LOSE)
 		return
 
+	if not boss_encounter and wave_director != null:
+		return
 	if stage_time_left <= 0.0:
 		_complete_round()
 
@@ -312,6 +326,8 @@ func _complete_round() -> void:
 	is_round_transitioning = true
 	is_result_displayed = true
 	GameSession.current_coins = player.get_coins()
+	if wave_config != null and int(wave_config.get("completion_coins")) > 0:
+		GameSession.current_coins += int(wave_config.get("completion_coins"))
 	_stop_world()
 	_change_scene_after_stop("res://scene/shop.tscn")
 
@@ -326,6 +342,34 @@ func _try_spawn_boss_for_round() -> void:
 	active_boss.defeated.connect(_on_boss_defeated)
 	active_boss.timed_out.connect(_on_boss_timeout)
 	active_boss.attack_telegraph.connect(_on_boss_telegraph)
+
+func _configure_wave_director() -> void:
+	if boss_encounter:
+		return
+	if wave_configs.is_empty():
+		return
+	var index := clampi(GameSession.current_round - 1, 0, wave_configs.size() - 1)
+	wave_config = wave_configs[index]
+	wave_director = WaveDirectorScript.new()
+	if not wave_director.configure(wave_config):
+		wave_director = null
+		return
+	wave_director.spawn_requested.connect(_on_wave_spawn_requested)
+	wave_director.wave_completed.connect(_on_wave_completed)
+	wave_director.progress_changed.connect(_on_wave_progress_changed)
+
+func _on_wave_spawn_requested(enemy_config: Resource) -> void:
+	if is_result_displayed or is_round_transitioning or boss_encounter:
+		return
+	_try_spawn_enemy_from_config(enemy_config)
+
+func _on_wave_completed(_snapshot: Dictionary) -> void:
+	if boss_encounter or is_result_displayed or is_round_transitioning:
+		return
+	_complete_round()
+
+func _on_wave_progress_changed(_snapshot: Dictionary) -> void:
+	_update_hud()
 
 func _on_boss_telegraph(_mode: StringName, _duration: float) -> void:
 	if enemy_spawn_timer != null:
@@ -502,7 +546,17 @@ func _try_spawn_enemy() -> bool:
 		return false
 
 	var enemy_config := _pick_enemy_config()
-	if enemy_config == null:
+	return _try_spawn_enemy_from_config(enemy_config)
+
+func _try_spawn_enemy_from_config(enemy_config: Resource) -> bool:
+	if wave_director != null and not wave_director.can_spawn():
+		return false
+	if not _is_spawn_system_ready() or enemy_config == null:
+		return false
+	if _get_alive_enemy_count() >= max_alive_enemies:
+		return false
+	var spawn_point := _pick_spawn_point()
+	if spawn_point == null:
 		return false
 
 	var enemy_instance := enemy_scene.instantiate() as Enemy
@@ -513,8 +567,16 @@ func _try_spawn_enemy() -> bool:
 	enemy_container.add_child(enemy_instance)
 	enemy_instance.global_position = spawn_point.global_position
 	enemy_instance.setup(enemy_config, player)
+	if not enemy_instance.defeated.is_connected(_on_enemy_defeated):
+		enemy_instance.defeated.connect(_on_enemy_defeated)
+	if wave_director != null:
+		wave_director.notify_enemy_spawned()
 
 	return true
+
+func _on_enemy_defeated() -> void:
+	if wave_director != null:
+		wave_director.notify_enemy_defeated()
 	
 	# 只要玩家、敌人场景、配置和出生点都有效，就允许继续刷怪。
 func _is_spawn_system_ready() -> bool:

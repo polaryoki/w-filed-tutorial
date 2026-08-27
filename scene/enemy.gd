@@ -1,6 +1,8 @@
 extends CharacterBody2D
 class_name Enemy
 
+signal defeated
+
 const DEFAULT_BULLET_DAMAGE := 1
 
 const BLINK_ENABLED_SHADER_PARAMETER := &"blink_enabled"
@@ -251,6 +253,7 @@ func _die() -> void:
 		return
 
 	is_dead = true
+	defeated.emit()
 	velocity = Vector2.ZERO
 	touched_player = null
 	hurt_blink_time_left = 0.0

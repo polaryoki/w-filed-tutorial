@@ -17,6 +17,14 @@ relic, Shop, and Boss boundaries.
 - [x] Phase 6: weapon offers, weapon upgrades, rerolls, and current-run transaction boundaries.
 - [x] Phase 7: balance resource validation, Boss HUD feedback, and repeatable smoke validation.
 - [x] Phase 8: run-scoped XP, levels, physical XP drops, and paused three-choice upgrades.
+- [x] Phase 9: data-driven wave director and run pacing.
+- [ ] Phase 10: real multi-weapon loadout (roadmap only).
+- [ ] Phase 11: Shop inventory and weapon combining (roadmap only).
+- [ ] Phase 12: item ecosystem and build tradeoffs (roadmap only).
+- [ ] Phase 13: enemy factions, elites, and composition rules (roadmap only).
+- [ ] Phase 14: original tactical-industrial presentation pass (roadmap only).
+- [ ] Phase 15: finite run milestones and final encounter (roadmap only).
+- [ ] Phase 16: balance, performance, and release verification (roadmap only).
 
 ## Commands run
 
@@ -32,6 +40,12 @@ relic, Shop, and Boss boundaries.
 - `godot <compatible-headless-options> --scene res://tests/phase8_integration.tscn`
 - Phase 1-8 smoke and all Phase 5/8 integrations were run with isolated
   `APPDATA`, Dummy audio, headless display, `gl_compatibility`, and OpenGL 3.
+- `godot <compatible-headless-options> --script res://tests/phase9_smoke.gd`
+- Phase 9 first-pass smoke and the Phase 8 regression smoke passed with the
+  same isolated runtime setup on 2026-08-27.
+- `godot <compatible-headless-options> --scene res://tests/phase9_game_integration.tscn`
+- Phase 9 Game integration, Phase 8 smoke, and Phase 8 integration passed with
+  the isolated runtime setup on 2026-08-27.
 
 ## Phase 2 decisions
 
@@ -66,7 +80,19 @@ runtime crash and all current tests exit successfully.
 
 ## Next step
 
-Phase 8 is closed. Phase 9 has not been designed or started.
+Phase 8 is closed. Phase 9 first pass now includes WaveConfig resources, a pure
+WaveDirector, and focused runtime smoke coverage. Next pass should integrate
+director-driven spawning/HUD into Game while preserving terminal paths.
+
+## Planning checkpoint
+
+- `docs/development-roadmap.md` defines the Phase 9-16 sequence.
+- `docs/visual-direction.md` defines an original industrial-frontier tactical
+  style and explicit non-copying boundaries.
+- `docs/phase9-proposal.md`, `docs/phase9-design.md`, and
+  `docs/tasks/phase9-wave-director.md` are ready for the next workflow cycle.
+- Phase 9 gameplay integration is now present in Game; final phase acceptance
+  still requires the broader Phase 1-9 regression sweep.
 
 ## Phase 7 decisions
 
@@ -112,6 +138,33 @@ Phase 8 is closed. Phase 9 has not been designed or started.
   Phase 8 stacks. Live choices update Player and WeaponSystem immediately.
 - Game pauses the scene tree for choices without changing `Engine.time_scale`;
   result dialogs and scene transitions retain their existing terminal control.
+
+## Phase 9 first-pass decisions
+
+- Three immutable WaveConfig resources define distinct pacing and weighted
+  pools using existing EnemyConfig resources.
+- WaveDirector is pure runtime state: it requests spawns, but consumes budget
+  only after Game confirms that an enemy was constructed.
+- Duration completion, caps, budgets, and duplicate defeat notifications are
+  guarded and covered by the focused smoke test. Game integration remains the
+  next bounded pass.
+
+## Phase 9 Game integration decisions
+
+- Ordinary rounds advance WaveDirector from Game; the legacy EnemySpawnTimer is
+  reserved for Boss rounds.
+- Game commits spawn state only after successful Enemy construction; Enemy emits
+  one idempotent `defeated` signal from its existing death entry point.
+- Existing HUD labels/time bar show wave, remaining seconds, and kill progress.
+- Completion coins are credited once before the existing Shop transition.
+
+## Phase 9 final acceptance
+
+- Full Phase 1-9 smoke regression passed under isolated APPDATA, Dummy audio,
+  headless display, gl_compatibility, and OpenGL 3 on 2026-08-27.
+- Phase 5, Phase 8, and Phase 9 integration scenes passed in the same runtime.
+- Temporary generated `.uid` files from test execution were removed; no Phase
+  10 code or unrelated refactor was added.
 
 ## Phase 8 runtime verification
 

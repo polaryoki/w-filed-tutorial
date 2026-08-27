@@ -108,3 +108,11 @@ Boss battles, selectable characters, multi-attribute character progression, inde
 Phase 1-8 smoke scripts and all existing Phase 5/8 integration harnesses pass
 real runtime/headless execution with isolated writable `APPDATA`, Dummy audio,
 and the headless OpenGL compatibility renderer. No permanent save was added.
+## Phase 9 Wave Director (current slice)
+
+- WaveConfig resources define ordinary-wave duration, budget, cadence, cap,
+  weighted enemy pools, and completion rewards.
+- WaveDirector owns ordinary-wave pacing; Game owns Enemy creation, HUD, and
+  transitions. Boss rounds retain their dedicated timer path.
+- Phase 9 final runtime regression (Phase 1-9 smoke plus Phase 5/8/9
+  integrations) passes in the compatible isolated headless environment.
