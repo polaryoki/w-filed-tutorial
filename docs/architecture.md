@@ -124,3 +124,11 @@ EnemyConfig -> Enemy -> ExperiencePickup -> GameSession
 `Game` connects requests to the existing EnemyContainer, confirms Enemy
 creation/defeat, updates the existing HUD, and owns Shop transitions. Boss
 rounds retain their dedicated timer path.
+
+## Phase 10 weapon ownership
+
+Phase 10 is planned, not implemented. The approved draft keeps GameSession as
+owner of an ordered three-slot current-run weapon ID loadout and per-ID levels;
+WeaponConfig remains immutable source data. Player will own aim/input
+orchestration, while WeaponSystem will host one runtime entry and independent
+cooldown per equipped weapon. WaveDirector and Boss ownership remain unchanged.

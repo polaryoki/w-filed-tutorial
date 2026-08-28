@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WeaponConfig" load_steps=2 format=3]
+[ext_resource type="Script" path="res://resourse/weapon/weapon_config.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"driver"
+display_name = "Pile Driver"
+damage = 4
+fire_interval = 0.9
+projectile_count = 1
+spread_degrees = 0.0
+projectile_speed = 240.0
+range = 300.0
+piercing = 3
+tags = Array[StringName]([&"industrial", &"heavy"])

@@ -7,8 +7,8 @@ character selection, timed combat rounds, enemy drops, coins, relics, weapons,
 synergies, Boss flow, Shop transactions, XP levels, and paused three-choice
 upgrades. All progression is current-run only.
 
-Phase 9 is complete. The next approved target is Phase 10, which must begin
-with a separate planning/design pass before implementation.
+Phase 10 proposal, design, and task breakdown are complete, but implementation
+has not started from the accepted baseline. Phase 11 remains out of scope.
 
 ## Start here next session
 
@@ -18,11 +18,10 @@ Read, in order:
 2. `docs/tasks/progress.md`
 3. `docs/development-roadmap.md`
 4. `docs/visual-direction.md`
-5. `docs/phase9-proposal.md`
-6. `docs/phase9-design.md`
-7. `docs/tasks/phase9-wave-director.md`
-8. `docs/phase9-prompt.md`
-9. `docs/architecture.md`, `docs/game-mechanics.md`, and current related code
+5. `docs/phase10-proposal.md`
+6. `docs/phase10-design.md`
+7. `docs/tasks/phase10-multi-weapon-loadout.md`
+8. `docs/architecture.md`, `docs/game-mechanics.md`, and current related code
 
 Then inspect `git status` before editing. Existing user changes must be
 preserved. Re-audit actual Game/GameSession/Enemy/Boss/Shop/Phase 8 behavior;
@@ -30,8 +29,8 @@ the design draft is guidance, not authority over current code.
 
 ## Immediate next action
 
-Phase 9 is closed. Do not implement Phase 10 until its proposal, design, task
-breakdown, and acceptance checks are explicitly prepared and approved.
+Wait for Phase 10 design review. After approval, begin Task 1 only. Do not
+implement Phase 10 or enter Phase 11 before that approval.
 
 ## Runtime verification environment
 
@@ -58,7 +57,7 @@ log a Windows root-certificate-store warning; current tests still exit zero.
 ## Guardrails
 
 - Follow vibe-coding-workflow: requirements/design/tasks before implementation.
-- Do not implement Phase 10 while Phase 9 is active.
+- Do not implement Phase 10 until its planning documents are reviewed.
 - Do not add permanent saves, meta progression, networking, achievements, ads,
   purchases, or external services without explicit approval.
 - Preserve GameSession run-state ownership, Game orchestration, Player input,
@@ -69,7 +68,8 @@ log a Windows root-certificate-store warning; current tests still exit zero.
 
 ## Last verified baseline
 
-- Phase 1-8 smoke: passed.
+- Phase 1-9 smoke: passed.
 - Phase 5 integration scene and smoke: passed.
 - Phase 8 integration scene: passed.
+- Phase 9 integration scene: passed.
 - Compatible environment: isolated APPDATA, Dummy audio, headless OpenGL.

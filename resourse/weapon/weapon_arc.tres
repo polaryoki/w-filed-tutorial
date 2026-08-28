@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WeaponConfig" load_steps=2 format=3]
+[ext_resource type="Script" path="res://resourse/weapon/weapon_config.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"arc"
+display_name = "Arc Projector"
+damage = 1
+fire_interval = 0.32
+projectile_count = 2
+spread_degrees = 8.0
+projectile_speed = 380.0
+range = 420.0
+piercing = 2
+tags = Array[StringName]([&"energy", &"projector"])

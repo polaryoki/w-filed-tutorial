@@ -11,6 +11,8 @@ const RELIC_OPTIONS: Array[RelicData] = [
 const WEAPON_OPTIONS: Array[WeaponConfig] = [
 	preload("res://resourse/weapon/weapon_basic.tres"),
 	preload("res://resourse/weapon/weapon_scatter.tres"),
+	preload("res://resourse/weapon/weapon_arc.tres"),
+	preload("res://resourse/weapon/weapon_driver.tres"),
 ]
 const WEAPON_OFFER_PRICE := 12
 const WEAPON_UPGRADE_PRICE := 10
@@ -22,11 +24,13 @@ const REROLL_PRICE := 5
 @onready var relic_items: VBoxContainer = $CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems
 var displayed_relics: Array[RelicData] = []
 var displayed_weapons: Array[WeaponConfig] = []
+var weapon_items: VBoxContainer
 
 func _ready() -> void:
 	round_label.text = "回合 %d" % GameSession.current_round
 	_build_relic_options()
 	_build_weapon_options()
+	_build_weapon_ui()
 	_refresh_gold()
 	continue_button.grab_focus()
 
@@ -74,6 +78,7 @@ func _refresh_gold() -> void:
 	gold_label.text = "金币：%d" % GameSession.current_coins
 	for index in displayed_relics.size():
 		_refresh_relic_button(index)
+	_refresh_weapon_ui()
 
 func _on_continue_button_pressed() -> void:
 	GameSession.current_round += 1
@@ -91,16 +96,49 @@ func try_buy_weapon(index: int) -> bool:
 	if index < 0 or index >= displayed_weapons.size():
 		return false
 	var weapon := displayed_weapons[index]
-	if not GameSession.try_spend_coins(WEAPON_OFFER_PRICE):
-		return false
-	if not GameSession.equip_weapon(weapon.id):
-		GameSession.current_coins += WEAPON_OFFER_PRICE
+	if not GameSession.try_purchase_weapon(weapon.id, WEAPON_OFFER_PRICE):
 		return false
 	_build_weapon_options()
+	_refresh_gold()
 	return true
 
 func try_upgrade_weapon(weapon_id: StringName) -> bool:
-	return GameSession.upgrade_weapon(weapon_id, WEAPON_UPGRADE_PRICE)
+	var upgraded := GameSession.upgrade_weapon(weapon_id, WEAPON_UPGRADE_PRICE)
+	if upgraded: _refresh_gold()
+	return upgraded
+
+func _build_weapon_ui() -> void:
+	if weapon_items == null:
+		weapon_items = VBoxContainer.new()
+		weapon_items.name = "WeaponItems"
+		var layout := get_node("CenterContainer/PanelContainer/MarginContainer/Layout")
+		layout.add_child(weapon_items)
+		layout.move_child(weapon_items, layout.get_child_count() - 2)
+	_refresh_weapon_ui()
+
+func _refresh_weapon_ui() -> void:
+	if weapon_items == null: return
+	for child in weapon_items.get_children(): child.free()
+	for weapon in WEAPON_OPTIONS:
+		var row := HBoxContainer.new()
+		var label := Label.new()
+		var button := Button.new()
+		row.add_child(label); row.add_child(button); weapon_items.add_child(row)
+		if weapon.id in GameSession.equipped_weapon_ids:
+			var level := GameSession.get_weapon_upgrade_level(weapon.id)
+			label.text = "%s  Lv.%d" % [weapon.display_name, level]
+			button.text = "Upgrade %d" % WEAPON_UPGRADE_PRICE
+			button.disabled = GameSession.current_coins < WEAPON_UPGRADE_PRICE
+			button.pressed.connect(func(): try_upgrade_weapon(weapon.id))
+		else:
+			label.text = weapon.display_name
+			button.text = "Buy %d" % WEAPON_OFFER_PRICE
+			button.disabled = GameSession.current_coins < WEAPON_OFFER_PRICE or GameSession.equipped_weapon_ids.size() >= GameSession.MAX_WEAPON_SLOTS
+			button.pressed.connect(_buy_weapon_by_id.bind(weapon.id))
+
+func _buy_weapon_by_id(weapon_id: StringName) -> void:
+	if GameSession.try_purchase_weapon(weapon_id, WEAPON_OFFER_PRICE):
+		_build_weapon_options(); _refresh_gold()
 
 func try_reroll() -> bool:
 	if not GameSession.reroll_shop(REROLL_PRICE):

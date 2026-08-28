@@ -107,6 +107,10 @@ Immediate priority:
 2. Preserve Phase 8 XP/level-up pause behavior during wave timing.
 3. Add deterministic wave/runtime integration tests before content expansion.
 
+Phase 10 real multi-weapon loadout planning is complete and awaits review;
+implementation has not started from the accepted Phase 1-9 baseline. Phase 11
+Shop inventory/combining remains out of scope and requires a separate design pass.
+
 Later phases cover real multi-weapon builds, Shop combining, item tradeoffs,
 enemy composition, an original industrial-tactical presentation pass, finite
 run milestones, and final balance/performance verification. Permanent saves,

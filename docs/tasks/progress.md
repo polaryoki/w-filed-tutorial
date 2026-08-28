@@ -2,10 +2,8 @@
 
 ## Current status
 
-Phases 1-8 are implemented. The current build includes run-scoped XP, physical
-XP drops, scalable levels, three-choice upgrades, paused selection, and
-immediate live stat application on top of the established character, weapon,
-relic, Shop, and Boss boundaries.
+Phases 1-9 are implemented and runtime-verified. Phase 10 Tasks 1-2 are
+implemented and verified; Tasks 3-6 remain incomplete and Phase 10 is not DONE.
 
 ## Tasks
 
@@ -18,7 +16,7 @@ relic, Shop, and Boss boundaries.
 - [x] Phase 7: balance resource validation, Boss HUD feedback, and repeatable smoke validation.
 - [x] Phase 8: run-scoped XP, levels, physical XP drops, and paused three-choice upgrades.
 - [x] Phase 9: data-driven wave director and run pacing.
-- [ ] Phase 10: real multi-weapon loadout (roadmap only).
+- [ ] Phase 10: real multi-weapon loadout — Tasks 1-2 complete; Tasks 3-6 not implemented/accepted.
 - [ ] Phase 11: Shop inventory and weapon combining (roadmap only).
 - [ ] Phase 12: item ecosystem and build tradeoffs (roadmap only).
 - [ ] Phase 13: enemy factions, elites, and composition rules (roadmap only).
@@ -46,6 +44,14 @@ relic, Shop, and Boss boundaries.
 - `godot <compatible-headless-options> --scene res://tests/phase9_game_integration.tscn`
 - Phase 9 Game integration, Phase 8 smoke, and Phase 8 integration passed with
   the isolated runtime setup on 2026-08-27.
+- `godot <compatible-headless-options> --script res://tests/phase10_task1_smoke.gd`
+- Phase 10 Task 1 focused smoke, Phase 1-9 smoke, Phase 5 integration smoke,
+  and Phase 5/8/9 integration scenes passed on 2026-08-28. The certificate and
+  cleanup warnings did not affect exit codes.
+- `godot <compatible-headless-options> --script res://tests/phase10_task2_smoke.gd`
+- Phase 10 Task 2 focused smoke plus the Phase 1-9 smoke/regression set passed
+  on 2026-08-28. Expected invalid-input errors, certificate, and cleanup
+  warnings did not affect exit codes.
 
 ## Phase 2 decisions
 
@@ -80,9 +86,23 @@ runtime crash and all current tests exit successfully.
 
 ## Next step
 
-Phase 8 is closed. Phase 9 first pass now includes WaveConfig resources, a pure
-WaveDirector, and focused runtime smoke coverage. Next pass should integrate
-director-driven spawning/HUD into Game while preserving terminal paths.
+Review the Task 2 diff and runtime results. After approval, begin Task 3 only;
+do not treat pre-existing Task 3-5 worktree changes as accepted implementation,
+and do not begin Phase 11.
+
+## Phase 10 planning checkpoint
+
+- Proposal, detailed design, and six minimal verifiable implementation slices are drafted.
+- Chosen direction: ordered three-slot loadout, per-ID Run levels, shared aim,
+  independent WeaponSystem cooldowns, and GameSession-owned atomic transactions.
+- No Task 3-6 gameplay or final Phase 10 acceptance is claimed by this checkpoint.
+- Task 1 is implemented: GameSession owns a validated ordered three-slot
+  loadout, per-ID Run levels, CharacterConfig-derived reset, atomic purchase and
+  upgrade transactions, and defensive query snapshots.
+- Task 2 is implemented: WeaponConfig exposes explicit per-level stat
+  resolution with shared level bounds, invalid-input rejection, copied results,
+  and Resource immutability.
+- Tasks 3-6 remain incomplete; Phase 10 is not DONE.
 
 ## Planning checkpoint
 

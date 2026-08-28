@@ -70,7 +70,7 @@ func _ready() -> void:
 	shooting_timer.one_shot = true
 	shooting_timer.wait_time = _get_effective_fire_interval()
 	weapon_system.setup(BASIC_WEAPON)
-	weapon_system.set_runtime_damage(damage)
+	_configure_weapon_loadout()
 	_apply_pickup_range()
 	_set_hurt_blink_enabled(false)
 	_update_animation()
@@ -90,11 +90,11 @@ func apply_level_upgrade(upgrade: Resource) -> bool:
 			move_speed *= maxf(value, 0.01)
 		UpgradeConfigScript.EffectType.DAMAGE:
 			damage += maxi(roundi(value), 1)
-			if weapon_system != null:
-				weapon_system.set_runtime_damage(damage)
+			_refresh_weapon_modifiers()
 		UpgradeConfigScript.EffectType.ATTACK_SPEED_MULTIPLIER:
 			fire_interval /= maxf(value, 0.01)
 			_refresh_shooting_timer_wait_time()
+			_refresh_weapon_modifiers()
 		UpgradeConfigScript.EffectType.PICKUP_RANGE_MULTIPLIER:
 			pickup_range *= maxf(value, 0.01)
 			_apply_pickup_range()
@@ -132,7 +132,7 @@ func apply_character_stats(stats: Dictionary) -> void:
 	_update_animation()
 	_update_armed_effect()
 	if weapon_system != null:
-		weapon_system.set_runtime_damage(damage)
+		_configure_weapon_loadout()
 
 
 func _apply_pickup_range() -> void:
@@ -162,9 +162,11 @@ func _physics_process(delta: float) -> void:
 	_set_move_sfx_active(is_moving)
 
 	if current_shot_pattern == PickupConfig.ShotPattern.SPIRAL:
-		_try_auto_spiral_shoot()
+		_try_auto_spiral_shoot(delta)
 	elif shoot_input != Vector2.ZERO:
-		_try_shoot(shoot_input)
+		_try_shoot(shoot_input, delta)
+	elif weapon_system != null:
+		weapon_system.advance_and_fire(delta, global_position, Vector2.ZERO, get_tree().current_scene, _can_spawn_bullet)
 
 	_update_facing(move_input, shoot_input)
 	_update_animation()
@@ -194,15 +196,28 @@ func _update_facing(move_input: Vector2, shoot_input: Vector2) -> void:
 	elif move_input != Vector2.ZERO:
 		facing_suffix = _vector_to_facing_suffix(move_input)
 		
-func _try_shoot(shoot_input: Vector2) -> void:
-	if not shooting_timer.is_stopped():
-		return
-		
+func _try_shoot(shoot_input: Vector2, delta: float = 0.0) -> void:
 	var shoot_direction := shoot_input.normalized()
-	var has_spawned_bullet := _fire_bullets(shoot_direction)
+	var has_spawned_bullet := false
+	if weapon_system != null:
+		has_spawned_bullet = weapon_system.advance_and_fire(delta, global_position + shoot_direction * bullet_spawn_distance, shoot_direction, get_tree().current_scene, _can_spawn_bullet) > 0
+	else:
+		has_spawned_bullet = _fire_bullets(shoot_direction)
 	if has_spawned_bullet:
 		_play_sfx(shoot_sfx_player)
-	shooting_timer.start(_get_effective_fire_interval())
+
+func _configure_weapon_loadout() -> void:
+	if weapon_system == null: return
+	var configs: Array[WeaponConfig] = GameSession.get_equipped_weapon_configs()
+	if configs.is_empty(): configs = [BASIC_WEAPON]
+	weapon_system.setup_loadout(configs, GameSession.weapon_upgrade_levels, _weapon_runtime_modifiers())
+
+func _refresh_weapon_modifiers() -> void:
+	if weapon_system != null: weapon_system.refresh_modifiers(_weapon_runtime_modifiers())
+
+func _weapon_runtime_modifiers() -> Dictionary:
+	var synergy := GameSession.resolve_weapon_synergies()
+	return {"damage_bonus": damage - BASIC_WEAPON.damage + int(synergy.get("damage_bonus", 0)), "fire_interval_multiplier": (_get_effective_fire_interval() / BASIC_WEAPON.fire_interval) * float(synergy.get("fire_interval_multiplier", 1.0)), "projectile_count_bonus": projectile_count - BASIC_WEAPON.projectile_count + int(synergy.get("projectile_count_bonus", 0)), "active_synergies": synergy.get("active_synergies", [])}
 		
 		
 func apply_pickup(config: PickupConfig) -> bool:
@@ -246,6 +261,7 @@ func apply_pickup(config: PickupConfig) -> bool:
 		
 	if should_refresh_shooting_timer:
 		_refresh_shooting_timer_wait_time()
+		_refresh_weapon_modifiers()
 	if applied:
 		_play_sfx(pickup_sfx_player)
 	return applied	
@@ -342,15 +358,16 @@ func _can_spawn_bullet(shoot_direction: Vector2) -> bool:
 	var hit_result: Dictionary = space_state.intersect_ray(query)
 	return hit_result.is_empty()	
 	
-func _try_auto_spiral_shoot() -> void:
-	if not shooting_timer.is_stopped():
-		return
-		
+func _try_auto_spiral_shoot(delta: float = 0.0) -> void:
 	var spiral_direction := Vector2.RIGHT.rotated(spiral_phase)
-	var has_spawned_bullet := _fire_bullets(spiral_direction)
+	var has_spawned_bullet := false
+	if weapon_system != null:
+		has_spawned_bullet = weapon_system.advance_and_fire(delta, global_position + spiral_direction * bullet_spawn_distance, spiral_direction, get_tree().current_scene, _can_spawn_bullet) > 0
+	else:
+		has_spawned_bullet = _fire_bullets(spiral_direction)
 	if has_spawned_bullet:
 		_play_sfx(shoot_sfx_player)
-	shooting_timer.start(_get_effective_fire_interval())
+		spiral_phase = wrapf(spiral_phase + SPIRAL_PHASE_STEP, 0.0, TAU)
 		
 # 每帧更新道具 Buff 剩余时间，并在到期后恢复默认状态。
 func _update_pickup_effects(delta: float) -> void:
@@ -367,6 +384,7 @@ func _update_pickup_effects(delta: float) -> void:
 		if rapid_buff_time_left <= 0.0:
 			rapid_fire_rate_multiplier = DEFAULT_FIRE_RATE_MULTIPLIER
 			_refresh_shooting_timer_wait_time()
+			_refresh_weapon_modifiers()
 
 
 	if form_buff_time_left > 0.0:
@@ -376,7 +394,8 @@ func _update_pickup_effects(delta: float) -> void:
 			current_shot_pattern = PickupConfig.ShotPattern.NORMAL
 			form_fire_rate_multiplier = DEFAULT_FIRE_RATE_MULTIPLIER
 			spiral_phase = 0.0
-			_refresh_shooting_timer_wait_time()		
+			_refresh_shooting_timer_wait_time()
+			_refresh_weapon_modifiers()
 		
 # 更新玩家无敌时间，并在结束时关闭闪烁效果。
 func _update_invincibility(delta: float) -> void:

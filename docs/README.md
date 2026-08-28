@@ -20,7 +20,7 @@ The project now starts at `res://scene/main_menu.tscn`. The menu routes the Star
 ## Continue development
 
 The durable restart point is [`continuation.md`](continuation.md). It records
-the verified Phase 1-8 baseline, runtime environment, required reading order,
+the verified Phase 1-9 baseline, runtime environment, required reading order,
 guardrails, and the first action for the next terminal session.
 
 Planning documents:
@@ -34,3 +34,7 @@ Planning documents:
   Phase 9 task breakdown.
 - [`phase9-prompt.md`](phase9-prompt.md): ready-to-use next-session control
   prompt.
+- [`phase10-proposal.md`](phase10-proposal.md): reviewed Phase 10 scope draft.
+- [`phase10-design.md`](phase10-design.md): proposed multi-weapon ownership and data flow.
+- [`tasks/phase10-multi-weapon-loadout.md`](tasks/phase10-multi-weapon-loadout.md):
+  implementation slices to execute only after review.

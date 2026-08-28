@@ -116,3 +116,9 @@ and the headless OpenGL compatibility renderer. No permanent save was added.
   transitions. Boss rounds retain their dedicated timer path.
 - Phase 9 final runtime regression (Phase 1-9 smoke plus Phase 5/8/9
   integrations) passes in the compatible isolated headless environment.
+
+## Phase 10 Planning Status
+
+Phase 10 proposal, design, and task breakdown are complete. Real multi-weapon
+runtime behavior is not part of the accepted Phase 1-9 implementation baseline
+and must not be marked implemented until the reviewed tasks and regressions pass.

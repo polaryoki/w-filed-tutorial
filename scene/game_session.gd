@@ -12,7 +12,7 @@ const CHARACTER_OPTIONS: Array[Resource] = [
 	preload("res://resourse/character/character_scout.tres"),
 	preload("res://resourse/character/character_guardian.tres"),
 ]
-const WEAPON_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/weapon_basic.tres"), preload("res://resourse/weapon/weapon_scatter.tres")]
+const WEAPON_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/weapon_basic.tres"), preload("res://resourse/weapon/weapon_scatter.tres"), preload("res://resourse/weapon/weapon_arc.tres"), preload("res://resourse/weapon/weapon_driver.tres")]
 const SYNERGY_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/synergy_kinetic_pair.tres")]
 const UPGRADE_OPTIONS: Array[Resource] = [
 	preload("res://resourse/progression/upgrade_max_health.tres"),
@@ -24,6 +24,8 @@ const UPGRADE_OPTIONS: Array[Resource] = [
 ]
 const BASE_XP_THRESHOLD := 5
 const XP_THRESHOLD_STEP := 3
+const MAX_WEAPON_SLOTS := 3
+const MAX_WEAPON_LEVEL := 99
 
 var current_round: int = 1
 var current_coins: int = 0
@@ -51,10 +53,10 @@ func reset_run() -> void:
 	current_coins = 0
 	owned_relics.clear()
 	selected_character_id = DEFAULT_CHARACTER_ID
-	equipped_weapon_ids = [&"basic"]
+	equipped_weapon_ids.clear()
 	boss_reward_coins = 0
 	boss_defeated = false
-	weapon_upgrade_levels = {&"basic": 1}
+	weapon_upgrade_levels.clear()
 	shop_reroll_count = 0
 	current_level = 1
 	current_xp = 0
@@ -62,6 +64,7 @@ func reset_run() -> void:
 	pending_level_ups = 0
 	level_upgrade_stacks.clear()
 	current_upgrade_offer_ids.clear()
+	_reset_weapon_loadout_for_selected_character()
 	_invalidate_character_resolution()
 	experience_changed.emit(current_xp, xp_to_next_level, current_level)
 
@@ -85,10 +88,12 @@ func get_character_config(character_id: StringName = &""):
 
 
 func select_character(character_id: StringName) -> bool:
-	if get_character_config(character_id) == null:
+	var character = get_character_config(character_id)
+	if character == null or get_weapon_config(StringName(character.get("starting_weapon"))) == null:
 		return false
 
 	selected_character_id = character_id
+	_reset_weapon_loadout_for_selected_character()
 	_invalidate_character_resolution()
 	return true
 
@@ -97,22 +102,87 @@ func get_selected_character():
 	return get_character_config(selected_character_id)
 
 func equip_weapon(weapon_id: StringName) -> bool:
+	return _add_weapon_to_loadout(weapon_id)
+
+func get_weapon_config(weapon_id: StringName) -> WeaponConfig:
 	for weapon in WEAPON_OPTIONS:
-		if weapon.get("id") != weapon_id:
-			continue
-		if weapon_id not in equipped_weapon_ids:
-			equipped_weapon_ids.append(weapon_id)
-		return true
-	return false
+		if weapon != null and weapon.id == weapon_id:
+			return weapon
+	return null
 
 func get_weapon_upgrade_level(weapon_id: StringName) -> int:
-	return maxi(int(weapon_upgrade_levels.get(weapon_id, 1)), 1)
+	if weapon_id not in equipped_weapon_ids or not weapon_upgrade_levels.has(weapon_id):
+		return 0
+	var level := int(weapon_upgrade_levels[weapon_id])
+	return level if level >= 1 and level <= MAX_WEAPON_LEVEL else 0
 
 func upgrade_weapon(weapon_id: StringName, price: int) -> bool:
-	if price <= 0 or current_coins < price or weapon_id not in equipped_weapon_ids:
+	return try_upgrade_weapon(weapon_id, price)
+
+func try_purchase_weapon(weapon_id: StringName, price: int) -> bool:
+	if price <= 0 or current_coins < price or not _can_add_weapon_to_loadout(weapon_id):
 		return false
 	current_coins -= price
-	weapon_upgrade_levels[weapon_id] = get_weapon_upgrade_level(weapon_id) + 1
+	equipped_weapon_ids.append(weapon_id)
+	weapon_upgrade_levels[weapon_id] = 1
+	return true
+
+func try_upgrade_weapon(weapon_id: StringName, price: int) -> bool:
+	var current_level := get_weapon_upgrade_level(weapon_id)
+	if (
+		price <= 0
+		or current_coins < price
+		or get_weapon_config(weapon_id) == null
+		or current_level < 1
+		or current_level >= MAX_WEAPON_LEVEL
+	):
+		return false
+	current_coins -= price
+	weapon_upgrade_levels[weapon_id] = current_level + 1
+	return true
+
+func get_equipped_weapon_configs() -> Array[WeaponConfig]:
+	var result: Array[WeaponConfig] = []
+	for weapon_id in equipped_weapon_ids:
+		var config := get_weapon_config(weapon_id)
+		if config != null:
+			result.append(config)
+	return result
+
+func get_equipped_weapon_ids() -> Array[StringName]:
+	return equipped_weapon_ids.duplicate()
+
+func get_weapon_upgrade_levels() -> Dictionary:
+	return weapon_upgrade_levels.duplicate(true)
+
+func _can_add_weapon_to_loadout(weapon_id: StringName) -> bool:
+	return (
+		weapon_id != &""
+		and get_weapon_config(weapon_id) != null
+		and weapon_id not in equipped_weapon_ids
+		and equipped_weapon_ids.size() < MAX_WEAPON_SLOTS
+	)
+
+func _add_weapon_to_loadout(weapon_id: StringName) -> bool:
+	if not _can_add_weapon_to_loadout(weapon_id):
+		return false
+	equipped_weapon_ids.append(weapon_id)
+	weapon_upgrade_levels[weapon_id] = 1
+	return true
+
+func _reset_weapon_loadout_for_selected_character() -> bool:
+	equipped_weapon_ids.clear()
+	weapon_upgrade_levels.clear()
+	var character = get_selected_character()
+	if character == null:
+		push_error("Cannot reset weapon loadout: selected character is invalid")
+		return false
+	var starting_weapon_id := StringName(character.get("starting_weapon"))
+	if get_weapon_config(starting_weapon_id) == null:
+		push_error("Cannot reset weapon loadout: character starting weapon is invalid: %s" % starting_weapon_id)
+		return false
+	equipped_weapon_ids.append(starting_weapon_id)
+	weapon_upgrade_levels[starting_weapon_id] = 1
 	return true
 
 func reroll_shop(price: int) -> bool:
@@ -134,10 +204,16 @@ func resolve_weapon_synergies() -> Dictionary:
 			if tag not in tags:
 				tags.append(tag)
 	var active: Array[StringName] = []
+	var fire_interval_multiplier := 1.0
+	var damage_bonus := 0
+	var projectile_count_bonus := 0
 	for synergy in SYNERGY_OPTIONS:
 		if synergy.applies_to_tags(tags):
 			active.append(synergy.get("id"))
-	return {"active_synergies": active, "weapon_count": weapons.size(), "tags": tags}
+			fire_interval_multiplier *= float(synergy.get("fire_interval_multiplier"))
+			damage_bonus += int(synergy.get("damage_bonus"))
+			projectile_count_bonus += int(synergy.get("projectile_count_bonus"))
+	return {"active_synergies": active, "weapon_count": weapons.size(), "tags": tags, "fire_interval_multiplier": fire_interval_multiplier, "damage_bonus": damage_bonus, "projectile_count_bonus": projectile_count_bonus}
 
 
 func resolve_character_stats() -> Dictionary:
