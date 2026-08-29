@@ -69,7 +69,6 @@ func _ready() -> void:
 	current_health = maxi(max_health, 1)
 	shooting_timer.one_shot = true
 	shooting_timer.wait_time = _get_effective_fire_interval()
-	weapon_system.setup(BASIC_WEAPON)
 	_configure_weapon_loadout()
 	_apply_pickup_range()
 	_set_hurt_blink_enabled(false)

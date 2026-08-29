@@ -33,11 +33,19 @@ func setup_loadout(weapon_configs: Array[WeaponConfig], levels: Dictionary, modi
 	character_projectile_bonus = int(modifiers.get("projectile_count_bonus", 0))
 	active_synergy_ids.clear()
 	for id in modifiers.get("active_synergies", []): active_synergy_ids.append(StringName(id))
+	var seen: Dictionary = {}
 	for weapon_config in weapon_configs:
-		if weapon_config == null: continue
-		var level := maxi(int(levels.get(weapon_config.id, 1)), 1)
-		runtime_entries.append({"config": weapon_config, "level": level, "cooldown": 0.0, "stats": _resolve_runtime_stats(weapon_config, level)})
-	config = weapon_configs[0] if not weapon_configs.is_empty() else null
+		if weapon_config == null or weapon_config.id == &"" or seen.has(weapon_config.id):
+			continue
+		if not levels.has(weapon_config.id):
+			continue
+		var level := int(levels[weapon_config.id])
+		var stats := _resolve_runtime_stats(weapon_config, level)
+		if stats.is_empty():
+			continue
+		seen[weapon_config.id] = true
+		runtime_entries.append({"weapon_id": weapon_config.id, "config": weapon_config, "level": level, "cooldown_left": 0.0, "stats": stats})
+	config = runtime_entries[0]["config"] if not runtime_entries.is_empty() else null
 
 func refresh_modifiers(modifiers: Dictionary) -> void:
 	character_damage_bonus = int(modifiers.get("damage_bonus", character_damage_bonus))
@@ -49,19 +57,22 @@ func refresh_modifiers(modifiers: Dictionary) -> void:
 func advance_and_fire(delta: float, origin: Vector2, direction: Vector2, parent: Node, can_spawn: Callable) -> int:
 	var total := 0
 	for entry in runtime_entries:
-		entry["cooldown"] = maxf(float(entry["cooldown"]) - maxf(delta, 0.0), 0.0)
-		if direction == Vector2.ZERO or float(entry["cooldown"]) > 0.0: continue
+		entry["cooldown_left"] = maxf(float(entry["cooldown_left"]) - maxf(delta, 0.0), 0.0)
+		if direction == Vector2.ZERO or float(entry["cooldown_left"]) > 0.0: continue
 		var spawned := _fire_stats(entry["stats"], origin, direction, parent, can_spawn)
 		if spawned > 0:
-			entry["cooldown"] = float(entry["stats"]["fire_interval"])
+			entry["cooldown_left"] = float(entry["stats"]["fire_interval"])
 			total += spawned
 	return total
 
 func _resolve_runtime_stats(weapon_config: WeaponConfig, level: int) -> Dictionary:
-	var stats := weapon_config.resolved_stats()
-	stats["upgrade_level"] = level
-	stats["damage"] = maxi(int(stats["damage"]) + weapon_config.damage_per_level * (level - 1) + character_damage_bonus, 1)
-	stats["fire_interval"] = maxf(float(stats["fire_interval"]) * pow(weapon_config.fire_interval_per_level, level - 1) * character_fire_interval_multiplier, 0.01)
+	if weapon_config == null:
+		return {}
+	var stats := weapon_config.resolved_stats_for_level(level, GameSession.MAX_WEAPON_LEVEL)
+	if stats.is_empty():
+		return {}
+	stats["damage"] = maxi(int(stats["damage"]) + character_damage_bonus, 1)
+	stats["fire_interval"] = maxf(float(stats["fire_interval"]) * character_fire_interval_multiplier, 0.01)
 	stats["projectile_count"] = clampi(int(stats["projectile_count"]) + character_projectile_bonus, 1, 32)
 	return stats
 
@@ -69,12 +80,12 @@ func set_runtime_damage(value: int) -> void:
 	runtime_damage = maxi(value, 1)
 
 func get_fire_interval() -> float:
-	return config.resolved_stats()["fire_interval"] if config != null else 0.18
+	return float(runtime_entries[0]["stats"]["fire_interval"]) if not runtime_entries.is_empty() else 0.18
 
 func fire(origin: Vector2, direction: Vector2, parent: Node, can_spawn: Callable) -> int:
-	if config == null or parent == null or direction == Vector2.ZERO:
+	if parent == null or direction == Vector2.ZERO or runtime_entries.is_empty():
 		return 0
-	var stats := config.resolved_stats()
+	var stats: Dictionary = runtime_entries[0]["stats"].duplicate(true)
 	if runtime_damage > 0:
 		stats["damage"] = runtime_damage
 	return _fire_stats(stats, origin, direction, parent, can_spawn)

@@ -2,8 +2,8 @@
 
 ## Current status
 
-Phases 1-9 are implemented and runtime-verified. Phase 10 Tasks 1-2 are
-implemented and verified; Tasks 3-6 remain incomplete and Phase 10 is not DONE.
+Phases 1-9 are implemented and runtime-verified. Phase 10 Tasks 1-5 are
+implemented and verified; Task 6 remains incomplete and Phase 10 is not DONE.
 
 ## Tasks
 
@@ -16,7 +16,7 @@ implemented and verified; Tasks 3-6 remain incomplete and Phase 10 is not DONE.
 - [x] Phase 7: balance resource validation, Boss HUD feedback, and repeatable smoke validation.
 - [x] Phase 8: run-scoped XP, levels, physical XP drops, and paused three-choice upgrades.
 - [x] Phase 9: data-driven wave director and run pacing.
-- [ ] Phase 10: real multi-weapon loadout — Tasks 1-2 complete; Tasks 3-6 not implemented/accepted.
+- [ ] Phase 10: real multi-weapon loadout — Tasks 1-5 complete; Task 6 not implemented/accepted.
 - [ ] Phase 11: Shop inventory and weapon combining (roadmap only).
 - [ ] Phase 12: item ecosystem and build tradeoffs (roadmap only).
 - [ ] Phase 13: enemy factions, elites, and composition rules (roadmap only).
@@ -86,8 +86,8 @@ runtime crash and all current tests exit successfully.
 
 ## Next step
 
-Review the Task 2 diff and runtime results. After approval, begin Task 3 only;
-do not treat pre-existing Task 3-5 worktree changes as accepted implementation,
+Review the Task 5 diff and runtime results. After approval, begin Task 6 only;
+do not treat pre-existing Task 6 worktree changes as accepted implementation,
 and do not begin Phase 11.
 
 ## Phase 10 planning checkpoint
@@ -102,7 +102,13 @@ and do not begin Phase 11.
 - Task 2 is implemented: WeaponConfig exposes explicit per-level stat
   resolution with shared level bounds, invalid-input rejection, copied results,
   and Resource immutability.
-- Tasks 3-6 remain incomplete; Phase 10 is not DONE.
+- Task 3 is implemented and runtime-verified with independent per-weapon entries,
+  cooldowns, GameSession Run levels, and Task 2 stat resolution.
+- Task 4 is runtime-verified: Character, Relic, XP, synergy, and temporary
+  attack modifiers resolve idempotently across every weapon runtime entry.
+- Task 5 is runtime-verified: Shop presents weapon offers and equipped levels,
+  performs atomic purchase/upgrade transactions, handles full slots, and refreshes state.
+- Task 6 remains incomplete; Phase 10 is not DONE.
 
 ## Planning checkpoint
 
