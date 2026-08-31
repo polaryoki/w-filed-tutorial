@@ -2,8 +2,8 @@
 
 ## Current status
 
-Phases 1-9 are implemented and runtime-verified. Phase 10 Tasks 1-5 are
-implemented and verified; Task 6 remains incomplete and Phase 10 is not DONE.
+Phases 1-9 are implemented and runtime-verified. Phase 10 Tasks 1-6 are
+implemented and runtime-verified; Phase 10 is DONE. Phase 11 remains unstarted.
 
 ## Tasks
 
@@ -16,7 +16,7 @@ implemented and verified; Task 6 remains incomplete and Phase 10 is not DONE.
 - [x] Phase 7: balance resource validation, Boss HUD feedback, and repeatable smoke validation.
 - [x] Phase 8: run-scoped XP, levels, physical XP drops, and paused three-choice upgrades.
 - [x] Phase 9: data-driven wave director and run pacing.
-- [ ] Phase 10: real multi-weapon loadout — Tasks 1-5 complete; Task 6 not implemented/accepted.
+- [x] Phase 10: real multi-weapon loadout — Tasks 1-6 complete and verified.
 - [ ] Phase 11: Shop inventory and weapon combining (roadmap only).
 - [ ] Phase 12: item ecosystem and build tradeoffs (roadmap only).
 - [ ] Phase 13: enemy factions, elites, and composition rules (roadmap only).
@@ -86,9 +86,8 @@ runtime crash and all current tests exit successfully.
 
 ## Next step
 
-Review the Task 5 diff and runtime results. After approval, begin Task 6 only;
-do not treat pre-existing Task 6 worktree changes as accepted implementation,
-and do not begin Phase 11.
+Task 6 regression verification completed with a dedicated headless smoke; no
+Phase 11 implementation was started.
 
 ## Phase 10 planning checkpoint
 
@@ -108,7 +107,8 @@ and do not begin Phase 11.
   attack modifiers resolve idempotently across every weapon runtime entry.
 - Task 5 is runtime-verified: Shop presents weapon offers and equipped levels,
   performs atomic purchase/upgrade transactions, handles full slots, and refreshes state.
-- Task 6 remains incomplete; Phase 10 is not DONE.
+- Task 6 is complete and runtime-verified; Phase 10 is DONE. Phase 11 remains
+  unstarted.
 
 ## Planning checkpoint
 
