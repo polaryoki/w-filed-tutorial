@@ -1,8 +1,16 @@
 class_name WeaponConfig
 extends Resource
 
+enum ShopRarity {
+	COMMON,
+	UNCOMMON,
+	RARE,
+}
+
 @export var id: StringName = &"basic"
 @export var display_name: String = "Basic Weapon"
+@export var rarity: ShopRarity = ShopRarity.COMMON
+@export_range(0.01, 1000.0, 0.01, "or_greater") var shop_weight: float = 1.0
 @export_range(1, 999, 1) var damage: int = 1
 @export_range(0.01, 10.0, 0.01) var fire_interval: float = 0.18
 @export_range(1, 32, 1) var projectile_count: int = 1

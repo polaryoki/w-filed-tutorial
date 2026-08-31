@@ -3,7 +3,9 @@
 ## Current status
 
 Phases 1-9 are implemented and runtime-verified. Phase 10 Tasks 1-6 are
-implemented and runtime-verified; Phase 10 is DONE. Phase 11 remains unstarted.
+implemented and runtime-verified; Phase 10 is DONE. Phase 11 product planning,
+design, and task decomposition are complete; Tasks 1-4 are runtime-verified
+and Tasks 5-7 have not started. Phase 11 is not DONE.
 
 ## Tasks
 
@@ -17,7 +19,7 @@ implemented and runtime-verified; Phase 10 is DONE. Phase 11 remains unstarted.
 - [x] Phase 8: run-scoped XP, levels, physical XP drops, and paused three-choice upgrades.
 - [x] Phase 9: data-driven wave director and run pacing.
 - [x] Phase 10: real multi-weapon loadout — Tasks 1-6 complete and verified.
-- [ ] Phase 11: Shop inventory and weapon combining (roadmap only).
+- [ ] Phase 11: Shop inventory and duplicate-weapon combining — planning/design and Tasks 1-4 complete; Tasks 5-7 not implemented or accepted.
 - [ ] Phase 12: item ecosystem and build tradeoffs (roadmap only).
 - [ ] Phase 13: enemy factions, elites, and composition rules (roadmap only).
 - [ ] Phase 14: original tactical-industrial presentation pass (roadmap only).
@@ -86,8 +88,64 @@ runtime crash and all current tests exit successfully.
 
 ## Next step
 
-Task 6 regression verification completed with a dedicated headless smoke; no
-Phase 11 implementation was started.
+Begin Phase 11 Task 5 only: atomic purchase and duplicate Weapon upgrade. Tasks 6-7 and Phase 12
+have not started; Phase 11 remains not DONE.
+
+## Phase 11 Task 1 acceptance
+
+- WeaponConfig and RelicData expose minimal `COMMON/UNCOMMON/RARE` rarity and
+  positive `shop_weight` metadata without changing combat, level, price, or
+  modifier semantics.
+- GameSession owns a resettable ordered three-slot runtime inventory with
+  type-qualified offer IDs, primitive snapshots, catalog validation, and a
+  defensive snapshot getter.
+- `tests/phase11_task1/phase11_task1_smoke.gd` passed under Godot 4.7.1
+  headless. Phase 1/2 and Phase 10 Task 1-6 regressions also passed.
+- Task 1 did not implement weighted generation, lock, reroll, purchase/refill,
+  Shop UI, or any Phase 12 behavior.
+
+## Phase 11 Task 2 acceptance
+
+- `GameSession.ensure_shop_inventory(rng)` now builds a mixed Weapon + Relic
+  candidate pool, filters invalid/ineligible entries, and samples by finite
+  positive `shop_weight` without replacement using injected or production RNG.
+- Owned relics, max-level weapons, and unowned weapons at full loadout are
+  excluded; candidate exhaustion leaves `{}` slots and initialized inventories
+  are not rerolled by a second ensure call.
+- `tests/phase11_task2/phase11_task2_smoke.gd` passed under Godot 4.7.1
+  headless. Task 1, Phase 1/2, and Phase 10 Task 1-6 regressions passed.
+- Task 2 did not implement lock, reroll, purchase/refill, Shop UI, Task 7
+  integration, or any Phase 12 behavior.
+
+## Phase 11 Task 3 acceptance
+
+- `GameSession.set_shop_offer_locked(slot_index, expected_offer_id, locked)`
+  validates slot, populated offer, and stale UI identity before changing only
+  the target runtime snapshot.
+- Lock and unlock are independent and idempotent; invalid/empty slots and
+  mismatched IDs are no-ops. Locking consumes no RNG, does not rerun inventory
+  generation, and defensive snapshots cannot mutate authoritative lock state.
+- `reset_run()` clears the inventory and all lock state. WeaponConfig and
+  RelicData remain immutable.
+- `tests/phase11_task3/phase11_task3_smoke.gd` passed under Godot 4.7.1
+  headless. Tasks 1-2, Phase 1/2, and Phase 10 Task 1-6 regressions passed.
+- Task 4 reroll, Task 5 purchase/refill, Task 6 UI, Task 7 integration, and all
+  Phase 12 behavior remain unimplemented.
+
+## Phase 11 Task 4 acceptance
+
+- `GameSession` owns the current reroll price (`5 + 2 * count`) and an atomic
+  reroll transaction that preserves locked slots while rebuilding unlocked
+  slots through the existing mixed weighted, without-replacement generator.
+- Underfunded, uninitialized, malformed, all-locked, and corrupt-counter
+  requests are no-ops. Validation failures do not consume injected RNG;
+  successful rerolls deduct once, increment once, and commit one replacement.
+- Candidate exhaustion leaves empty unlocked slots, snapshots remain defensive,
+  Resources remain immutable, and `reset_run()` restores count 0 and price 5.
+- `tests/phase11_task4/phase11_task4_smoke.gd` passed under Godot 4.7.1
+  headless. Tasks 1-3, Phase 1/2, and Phase 10 Task 1-6 regressions passed.
+- Task 5 purchase/refill, Task 6 UI, Task 7 integration, and all Phase 12
+  behavior remain unimplemented.
 
 ## Phase 10 planning checkpoint
 

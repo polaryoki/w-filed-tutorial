@@ -10,9 +10,17 @@ enum EffectType {
 	BULLET_SPAWN_DISTANCE_BONUS,
 }
 
+enum ShopRarity {
+	COMMON,
+	UNCOMMON,
+	RARE,
+}
+
 @export var id: StringName
 @export var display_name: String
 @export_multiline var description: String
 @export var price: int = 0
+@export var rarity: ShopRarity = ShopRarity.COMMON
+@export_range(0.01, 1000.0, 0.01, "or_greater") var shop_weight: float = 1.0
 @export var effect_type: EffectType = EffectType.STARTING_COINS
 @export var effect_value: float = 0.0

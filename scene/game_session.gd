@@ -13,6 +13,14 @@ const CHARACTER_OPTIONS: Array[Resource] = [
 	preload("res://resourse/character/character_guardian.tres"),
 ]
 const WEAPON_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/weapon_basic.tres"), preload("res://resourse/weapon/weapon_scatter.tres"), preload("res://resourse/weapon/weapon_arc.tres"), preload("res://resourse/weapon/weapon_driver.tres")]
+const RELIC_OPTIONS: Array[Resource] = [
+	preload("res://resourse/relic/relic_lucky_start.tres"),
+	preload("res://resourse/relic/relic_rapid_chamber.tres"),
+	preload("res://resourse/relic/relic_reinforced_charm.tres"),
+	preload("res://resourse/relic/relic_swift_boots.tres"),
+	preload("res://resourse/relic/relic_iron_will.tres"),
+	preload("res://resourse/relic/relic_long_barrel.tres"),
+]
 const SYNERGY_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/synergy_kinetic_pair.tres")]
 const UPGRADE_OPTIONS: Array[Resource] = [
 	preload("res://resourse/progression/upgrade_max_health.tres"),
@@ -26,6 +34,14 @@ const BASE_XP_THRESHOLD := 5
 const XP_THRESHOLD_STEP := 3
 const MAX_WEAPON_SLOTS := 3
 const MAX_WEAPON_LEVEL := 99
+const SHOP_INVENTORY_SIZE := 3
+const SHOP_WEAPON_PRICE := 12
+const SHOP_WEAPON_UPGRADE_PRICE := 10
+const SHOP_REROLL_BASE_PRICE := 5
+const SHOP_REROLL_PRICE_STEP := 2
+const SHOP_OFFER_TYPE_WEAPON: StringName = &"weapon"
+const SHOP_OFFER_TYPE_RELIC: StringName = &"relic"
+const SHOP_RARITY_COUNT := 3
 
 var current_round: int = 1
 var current_coins: int = 0
@@ -42,6 +58,7 @@ var xp_to_next_level: int = BASE_XP_THRESHOLD
 var pending_level_ups: int = 0
 var level_upgrade_stacks: Dictionary = {}
 var current_upgrade_offer_ids: Array[StringName] = []
+var shop_inventory: Array[Dictionary] = []
 
 var _resolved_character_id: StringName = &""
 var _resolved_round: int = 0
@@ -64,9 +81,212 @@ func reset_run() -> void:
 	pending_level_ups = 0
 	level_upgrade_stacks.clear()
 	current_upgrade_offer_ids.clear()
+	shop_inventory.clear()
 	_reset_weapon_loadout_for_selected_character()
 	_invalidate_character_resolution()
 	experience_changed.emit(current_xp, xp_to_next_level, current_level)
+
+
+func validate_shop_catalogs() -> bool:
+	return _validate_shop_catalog(WEAPON_OPTIONS, SHOP_OFFER_TYPE_WEAPON) and _validate_shop_catalog(RELIC_OPTIONS, SHOP_OFFER_TYPE_RELIC)
+
+
+func ensure_shop_inventory(rng: RandomNumberGenerator = null) -> bool:
+	if not shop_inventory.is_empty():
+		return shop_inventory.size() == SHOP_INVENTORY_SIZE
+	var generator := rng
+	if generator == null:
+		generator = RandomNumberGenerator.new()
+		generator.randomize()
+	var candidates := _build_shop_offer_candidates()
+	shop_inventory.resize(SHOP_INVENTORY_SIZE)
+	for index in SHOP_INVENTORY_SIZE:
+		shop_inventory[index] = {}
+	for slot_index in SHOP_INVENTORY_SIZE:
+		var selected_index := _weighted_candidate_index(candidates, generator)
+		if selected_index < 0:
+			break
+		var selected: Dictionary = candidates.pop_at(selected_index)
+		selected["slot_index"] = slot_index
+		shop_inventory[slot_index] = selected
+	return true
+
+
+func get_shop_inventory_snapshot() -> Array[Dictionary]:
+	return shop_inventory.duplicate(true)
+
+
+func set_shop_offer_locked(slot_index: int, expected_offer_id: StringName, locked: bool) -> bool:
+	if slot_index < 0 or slot_index >= shop_inventory.size():
+		return false
+	var offer: Dictionary = shop_inventory[slot_index]
+	if offer.is_empty() or expected_offer_id == &"" or StringName(offer.get("offer_id", &"")) != expected_offer_id:
+		return false
+	if bool(offer.get("locked", false)) == locked:
+		return true
+	offer["locked"] = locked
+	shop_inventory[slot_index] = offer
+	return true
+
+
+func get_shop_reroll_price() -> int:
+	if shop_reroll_count < 0:
+		return -1
+	return SHOP_REROLL_BASE_PRICE + SHOP_REROLL_PRICE_STEP * shop_reroll_count
+
+
+func try_reroll_shop(rng: RandomNumberGenerator = null) -> bool:
+	if not _is_valid_shop_inventory_for_reroll():
+		return false
+	var price := get_shop_reroll_price()
+	if price <= 0 or current_coins < price:
+		return false
+
+	var excluded_offer_ids: Dictionary = {}
+	var unlocked_slots: Array[int] = []
+	for slot_index in SHOP_INVENTORY_SIZE:
+		var offer: Dictionary = shop_inventory[slot_index]
+		if not offer.is_empty() and bool(offer.get("locked", false)):
+			excluded_offer_ids[StringName(offer["offer_id"])] = true
+		else:
+			unlocked_slots.append(slot_index)
+	if unlocked_slots.is_empty():
+		return false
+
+	var generator := rng
+	if generator == null:
+		generator = RandomNumberGenerator.new()
+		generator.randomize()
+	var candidates := _build_shop_offer_candidates(excluded_offer_ids)
+	var replacement: Array[Dictionary] = shop_inventory.duplicate(true)
+	for slot_index in unlocked_slots:
+		replacement[slot_index] = {}
+		var selected_index := _weighted_candidate_index(candidates, generator)
+		if selected_index < 0:
+			continue
+		var selected: Dictionary = candidates.pop_at(selected_index)
+		selected["slot_index"] = slot_index
+		replacement[slot_index] = selected
+
+	current_coins -= price
+	shop_reroll_count += 1
+	shop_inventory = replacement
+	return true
+
+
+func _is_valid_shop_inventory_for_reroll() -> bool:
+	if shop_reroll_count < 0 or shop_inventory.size() != SHOP_INVENTORY_SIZE:
+		return false
+	var seen_offer_ids: Dictionary = {}
+	for slot_index in SHOP_INVENTORY_SIZE:
+		var offer: Dictionary = shop_inventory[slot_index]
+		if offer.is_empty():
+			continue
+		var offer_id := StringName(offer.get("offer_id", &""))
+		if offer_id == &"" or int(offer.get("slot_index", -1)) != slot_index or seen_offer_ids.has(offer_id):
+			return false
+		if not offer.has("locked") or not (offer.get("locked") is bool):
+			return false
+		seen_offer_ids[offer_id] = true
+	return true
+
+
+func _validate_shop_catalog(catalog: Array[Resource], offer_type: StringName) -> bool:
+	var seen_ids: Dictionary = {}
+	for resource in catalog:
+		if not _is_valid_shop_resource(resource, offer_type):
+			return false
+		var content_id := StringName(resource.get("id"))
+		if seen_ids.has(content_id):
+			return false
+		seen_ids[content_id] = true
+	return true
+
+
+func _is_valid_shop_resource(resource: Resource, offer_type: StringName) -> bool:
+	if resource == null or StringName(resource.get("id")) == &"":
+		return false
+	var rarity := int(resource.get("rarity"))
+	var weight := float(resource.get("shop_weight"))
+	if rarity < 0 or rarity >= SHOP_RARITY_COUNT or not is_finite(weight) or weight <= 0.0:
+		return false
+	if offer_type == SHOP_OFFER_TYPE_RELIC:
+		return int(resource.get("price")) > 0
+	return offer_type == SHOP_OFFER_TYPE_WEAPON
+
+
+func _build_shop_offer_candidates(excluded_offer_ids: Dictionary = {}) -> Array[Dictionary]:
+	var candidates: Array[Dictionary] = []
+	var seen_offer_ids: Dictionary = {}
+	for weapon in WEAPON_OPTIONS:
+		if not _is_valid_shop_resource(weapon, SHOP_OFFER_TYPE_WEAPON):
+			continue
+		var weapon_id := StringName(weapon.get("id"))
+		var is_owned := weapon_id in equipped_weapon_ids
+		if is_owned:
+			var level := get_weapon_upgrade_level(weapon_id)
+			if level < 1 or level >= MAX_WEAPON_LEVEL:
+				continue
+		elif equipped_weapon_ids.size() >= MAX_WEAPON_SLOTS:
+			continue
+		var offer := _create_shop_offer_snapshot(weapon, SHOP_OFFER_TYPE_WEAPON, -1)
+		if excluded_offer_ids.has(offer["offer_id"]) or seen_offer_ids.has(offer["offer_id"]):
+			continue
+		seen_offer_ids[offer["offer_id"]] = true
+		candidates.append(offer)
+	for relic in RELIC_OPTIONS:
+		if not _is_valid_shop_resource(relic, SHOP_OFFER_TYPE_RELIC):
+			continue
+		var relic_id := StringName(relic.get("id"))
+		if has_relic(String(relic_id)):
+			continue
+		var offer := _create_shop_offer_snapshot(relic, SHOP_OFFER_TYPE_RELIC, -1)
+		if excluded_offer_ids.has(offer["offer_id"]) or seen_offer_ids.has(offer["offer_id"]):
+			continue
+		seen_offer_ids[offer["offer_id"]] = true
+		candidates.append(offer)
+	return candidates
+
+
+func _weighted_candidate_index(candidates: Array[Dictionary], rng: RandomNumberGenerator) -> int:
+	if rng == null:
+		return -1
+	var total_weight := 0.0
+	for candidate in candidates:
+		var weight := float(candidate.get("weight", 0.0))
+		if is_finite(weight) and weight > 0.0:
+			total_weight += weight
+	if not is_finite(total_weight) or total_weight <= 0.0:
+		return -1
+	var draw := rng.randf() * total_weight
+	var cumulative := 0.0
+	var last_valid_index := -1
+	for index in candidates.size():
+		var weight := float(candidates[index].get("weight", 0.0))
+		if not is_finite(weight) or weight <= 0.0:
+			continue
+		last_valid_index = index
+		cumulative += weight
+		if draw < cumulative:
+			return index
+	return last_valid_index
+
+
+func _create_shop_offer_snapshot(resource: Resource, offer_type: StringName, slot_index: int) -> Dictionary:
+	var content_id := StringName(resource.get("id"))
+	var price := int(resource.get("price")) if offer_type == SHOP_OFFER_TYPE_RELIC else (
+		SHOP_WEAPON_UPGRADE_PRICE if content_id in equipped_weapon_ids else SHOP_WEAPON_PRICE
+	)
+	return {
+		"slot_index": slot_index,
+		"offer_id": StringName("%s:%s" % [offer_type, content_id]),
+		"offer_type": offer_type,
+		"content_id": content_id,
+		"rarity": int(resource.get("rarity")),
+		"weight": float(resource.get("shop_weight")),
+		"price": price,
+		"locked": false,
+	}
 
 
 func get_available_characters() -> Array[Resource]:
