@@ -43,6 +43,23 @@ const SHOP_OFFER_TYPE_WEAPON: StringName = &"weapon"
 const SHOP_OFFER_TYPE_RELIC: StringName = &"relic"
 const SHOP_RARITY_COUNT := 3
 
+const STAT_IDS: Array[StringName] = [
+	&"damage", &"attack_speed", &"projectile_count", &"projectile_speed", &"range",
+	&"max_health", &"armor", &"move_speed", &"pickup_range", &"luck", &"xp_gain",
+	&"fire_interval", &"bullet_spawn_distance",
+]
+const MODIFIER_OPERATIONS: Array[StringName] = [&"flat", &"percent"]
+const MODIFIER_SOURCE_TYPES: Array[StringName] = [&"character", &"relic", &"upgrade", &"synergy"]
+const STAT_BOUNDS: Dictionary = {
+	&"damage": Vector2(0.0, 9999.0), &"attack_speed": Vector2(0.01, 100.0),
+	&"projectile_count": Vector2(1.0, 32.0), &"projectile_speed": Vector2(1.0, 5000.0),
+	&"range": Vector2(1.0, 5000.0), &"max_health": Vector2(1.0, 9999.0),
+	&"armor": Vector2(0.0, 9999.0), &"move_speed": Vector2(1.0, 1000.0),
+	&"pickup_range": Vector2(1.0, 512.0), &"luck": Vector2(0.0, 1.0),
+	&"xp_gain": Vector2(0.01, 100.0), &"fire_interval": Vector2(0.01, 10.0),
+	&"bullet_spawn_distance": Vector2(0.0, 256.0),
+}
+
 var current_round: int = 1
 var current_coins: int = 0
 var owned_relics: Array[String] = []
@@ -63,6 +80,41 @@ var shop_inventory: Array[Dictionary] = []
 var _resolved_character_id: StringName = &""
 var _resolved_round: int = 0
 var _resolved_stats: Dictionary = {}
+
+func is_valid_stat_id(stat_id: StringName) -> bool:
+	return stat_id in STAT_IDS
+
+func get_stat_bounds(stat_id: StringName) -> Vector2:
+	return STAT_BOUNDS.get(stat_id, Vector2.ZERO)
+
+func validate_modifier(modifier: Dictionary) -> bool:
+	if not is_valid_stat_id(StringName(modifier.get("stat_id", &""))): return false
+	if StringName(modifier.get("operation", &"")) not in MODIFIER_OPERATIONS: return false
+	if StringName(modifier.get("source_type", &"")) not in MODIFIER_SOURCE_TYPES: return false
+	if not (modifier.get("value", null) is float or modifier.get("value", null) is int): return false
+	return modifier.has("source_id") and StringName(modifier.get("source_id")) != &""
+
+func get_final_stat_sheet() -> Dictionary:
+	var sheet := resolve_character_stats()
+	if not sheet.has("attack_speed"):
+		sheet["attack_speed"] = 1.0
+	return sheet.duplicate(true)
+
+func resolve_stat_sheet(base: Dictionary, modifiers: Array) -> Dictionary:
+	var result := base.duplicate(true)
+	var ordered := modifiers.duplicate(true)
+	ordered.sort_custom(func(a, b): return String(a.get("source_id", "")) < String(b.get("source_id", "")))
+	var factors: Dictionary = {}
+	for modifier in ordered:
+		if not validate_modifier(modifier): continue
+		var id := StringName(modifier["stat_id"])
+		if modifier["operation"] == &"flat": result[id] = float(result.get(id, 0.0)) + float(modifier["value"])
+		else: factors[id] = float(factors.get(id, 1.0)) * (1.0 + float(modifier["value"]))
+	for id in factors: result[id] = float(result.get(id, 0.0)) * float(factors[id])
+	for id in result:
+		if is_valid_stat_id(StringName(id)):
+			var bounds := get_stat_bounds(StringName(id)); result[id] = clampf(float(result[id]), bounds.x, bounds.y)
+	return result.duplicate(true)
 
 
 func reset_run() -> void:
@@ -532,29 +584,21 @@ func resolve_character_stats() -> Dictionary:
 		selected_character_id = character.get("id")
 
 	var stats: Dictionary = _get_character_base_stats(character)
-	var move_speed_multiplier := 1.0
-	var fire_interval_multiplier := 1.0
-
-	for relic_id in owned_relics:
-		match relic_id:
-			"lucky_start":
-				stats["starting_coins"] += 2
-			"rapid_chamber":
-				fire_interval_multiplier *= 0.9
-			"reinforced_charm":
-				stats["max_health"] += 1
-			"swift_boots":
-				move_speed_multiplier *= 1.15
-			"iron_will":
-				stats["invincibility_duration"] += 0.25
-			"long_barrel":
-				stats["bullet_spawn_distance"] += 6.0
-
-	_apply_level_upgrade_stacks(stats)
+	var modifiers: Array[Dictionary] = _collect_stat_modifiers(character)
+	var flat: Dictionary = {}
+	var percent: Dictionary = {}
+	for modifier in modifiers:
+		var id := StringName(modifier["stat_id"])
+		if modifier["operation"] == &"flat": flat[id] = float(flat.get(id, 0.0)) + float(modifier["value"])
+		else: percent[id] = float(percent.get(id, 1.0)) * (1.0 + float(modifier["value"]))
+	for id in flat: stats[id] = float(stats.get(id, 0.0)) + float(flat[id])
+	for id in percent: stats[id] = float(stats.get(id, 0.0)) * float(percent[id])
+	if stats.has("starting_coins"): stats["starting_coins"] = float(stats["starting_coins"]) # preserved special stat
+	stats["attack_speed"] = 1.0
 
 	stats["max_health"] = clampi(roundi(float(stats["max_health"])), 1, 999)
-	stats["move_speed"] = _round_stat(clampf(float(stats["move_speed"]) * move_speed_multiplier, 1.0, 1000.0))
-	stats["fire_interval"] = _round_stat(clampf(float(stats["fire_interval"]) * fire_interval_multiplier, 0.01, 10.0))
+	stats["move_speed"] = _round_stat(clampf(float(stats["move_speed"]), 1.0, 1000.0))
+	stats["fire_interval"] = _round_stat(clampf(float(stats["fire_interval"]), 0.01, 10.0))
 	stats["damage"] = clampi(roundi(float(stats["damage"])), 0, 999)
 	stats["projectile_count"] = clampi(roundi(float(stats["projectile_count"])), 1, 32)
 	stats["pickup_range"] = _round_stat(clampf(float(stats["pickup_range"]), 1.0, 512.0))
@@ -569,6 +613,36 @@ func resolve_character_stats() -> Dictionary:
 	_resolved_round = current_round
 	_resolved_stats = stats.duplicate(true)
 	return _resolved_stats.duplicate(true)
+
+func _collect_stat_modifiers(character: Resource) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for relic_id in owned_relics.duplicate():
+		match relic_id:
+			"lucky_start": result.append(_modifier(&"starting_coins", &"flat", 2.0, &"lucky_start", &"relic"))
+			"rapid_chamber": result.append(_modifier(&"fire_interval", &"percent", -0.1, &"rapid_chamber", &"relic"))
+			"reinforced_charm": result.append(_modifier(&"max_health", &"flat", 1.0, &"reinforced_charm", &"relic"))
+			"swift_boots": result.append(_modifier(&"move_speed", &"percent", 0.15, &"swift_boots", &"relic"))
+			"iron_will": result.append(_modifier(&"invincibility_duration", &"flat", 0.25, &"iron_will", &"relic"))
+			"long_barrel": result.append(_modifier(&"bullet_spawn_distance", &"flat", 6.0, &"long_barrel", &"relic"))
+	for upgrade_id in level_upgrade_stacks:
+		var stacks := maxi(int(level_upgrade_stacks[upgrade_id]), 0)
+		var upgrade := get_level_upgrade(StringName(upgrade_id))
+		if stacks <= 0 or upgrade == null: continue
+		var value := float(upgrade.get("effect_value"))
+		var stat := &""; var op := &"flat"; var amount := value
+		match int(upgrade.get("effect_type")):
+			UpgradeConfigScript.EffectType.MAX_HEALTH: stat = &"max_health"
+			UpgradeConfigScript.EffectType.MOVE_SPEED_MULTIPLIER: stat = &"move_speed"; op = &"percent"; amount = pow(value, stacks) - 1.0
+			UpgradeConfigScript.EffectType.DAMAGE: stat = &"damage"
+			UpgradeConfigScript.EffectType.ATTACK_SPEED_MULTIPLIER: stat = &"fire_interval"; op = &"percent"; amount = pow(1.0 / value, stacks) - 1.0
+			UpgradeConfigScript.EffectType.PICKUP_RANGE_MULTIPLIER: stat = &"pickup_range"; op = &"percent"; amount = pow(value, stacks) - 1.0
+			UpgradeConfigScript.EffectType.LUCK: stat = &"luck"
+		if stat != &"": result.append(_modifier(stat, op, amount if op == &"percent" else amount * stacks, StringName(upgrade_id), &"upgrade"))
+	result.sort_custom(func(a, b): return String(a["source_id"]) < String(b["source_id"]))
+	return result
+
+func _modifier(stat_id: StringName, operation: StringName, value: float, source_id: StringName, source_type: StringName) -> Dictionary:
+	return {"stat_id": stat_id, "operation": operation, "value": value, "source_id": source_id, "source_type": source_type}
 
 
 func has_relic(relic_id: String) -> bool:

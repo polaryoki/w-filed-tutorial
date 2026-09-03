@@ -66,6 +66,12 @@ var is_dead: bool = false
 @export var passive: StringName = &"steady_hand"
 
 func _ready() -> void:
+	# GameSession is the authoritative source for the current Run's resolved stats.
+	# Game also reapplies this snapshot during scene setup; this keeps standalone
+	# Player instances consistent without duplicating modifier calculations here.
+	if has_node("/root/GameSession"):
+		var session: Node = get_node("/root/GameSession")
+		apply_character_stats(session.resolve_character_stats())
 	current_health = maxi(max_health, 1)
 	shooting_timer.one_shot = true
 	shooting_timer.wait_time = _get_effective_fire_interval()
