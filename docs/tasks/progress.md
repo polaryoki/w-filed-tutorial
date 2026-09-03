@@ -4,8 +4,8 @@
 
 Phases 1-9 are implemented and runtime-verified. Phase 10 Tasks 1-6 are
 implemented and runtime-verified; Phase 10 is DONE. Phase 11 product planning,
-design, and task decomposition are complete; Tasks 1-4 are runtime-verified
-and Tasks 5-7 have not started. Phase 11 is not DONE.
+design, and task decomposition are complete; Tasks 1-5 are runtime-verified
+and Tasks 6-7 have not started. Phase 11 is not DONE.
 
 ## Tasks
 
@@ -19,7 +19,7 @@ and Tasks 5-7 have not started. Phase 11 is not DONE.
 - [x] Phase 8: run-scoped XP, levels, physical XP drops, and paused three-choice upgrades.
 - [x] Phase 9: data-driven wave director and run pacing.
 - [x] Phase 10: real multi-weapon loadout — Tasks 1-6 complete and verified.
-- [ ] Phase 11: Shop inventory and duplicate-weapon combining — planning/design and Tasks 1-4 complete; Tasks 5-7 not implemented or accepted.
+- [x] Phase 11: Shop inventory and duplicate-weapon combining — Tasks 1-7 complete and runtime-verified.
 - [ ] Phase 12: item ecosystem and build tradeoffs (roadmap only).
 - [ ] Phase 13: enemy factions, elites, and composition rules (roadmap only).
 - [ ] Phase 14: original tactical-industrial presentation pass (roadmap only).
@@ -167,6 +167,9 @@ have not started; Phase 11 remains not DONE.
   performs atomic purchase/upgrade transactions, handles full slots, and refreshes state.
 - Task 6 is complete and runtime-verified; Phase 10 is DONE. Phase 11 remains
   unstarted.
+- Task 6 focused smoke and Phase 11 Tasks 1-5 regressions pass under isolated
+  headless runtime; Phase 10 Task 5 smoke now validates authoritative
+  GameSession purchase/upgrade flow.
 
 ## Planning checkpoint
 

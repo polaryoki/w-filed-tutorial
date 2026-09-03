@@ -174,6 +174,77 @@ func try_reroll_shop(rng: RandomNumberGenerator = null) -> bool:
 	return true
 
 
+func try_purchase_shop_offer(slot_index: int, expected_offer_id: StringName, rng: RandomNumberGenerator = null) -> bool:
+	if slot_index < 0 or slot_index >= shop_inventory.size() or expected_offer_id == &"":
+		return false
+	var offer: Dictionary = shop_inventory[slot_index]
+	if offer.is_empty() or StringName(offer.get("offer_id", &"")) != expected_offer_id:
+		return false
+	if int(offer.get("slot_index", -1)) != slot_index or not offer.has("locked") or not (offer.get("locked") is bool):
+		return false
+	var offer_type := StringName(offer.get("offer_type", &""))
+	var content_id := StringName(offer.get("content_id", &""))
+	var price := int(offer.get("price", 0))
+	if content_id == &"" or price <= 0 or current_coins < price:
+		return false
+
+	var next_weapon_ids: Array[StringName] = equipped_weapon_ids.duplicate()
+	var next_weapon_levels: Dictionary = weapon_upgrade_levels.duplicate(true)
+	var next_relics: Array[String] = owned_relics.duplicate()
+	if offer_type == SHOP_OFFER_TYPE_WEAPON:
+		var weapon := get_weapon_config(content_id)
+		if weapon == null or not _is_valid_shop_resource(weapon, SHOP_OFFER_TYPE_WEAPON) or expected_offer_id != StringName("weapon:%s" % content_id):
+			return false
+		if content_id in next_weapon_ids:
+			var level := get_weapon_upgrade_level(content_id)
+			if level < 1 or level >= MAX_WEAPON_LEVEL or price != SHOP_WEAPON_UPGRADE_PRICE:
+				return false
+			next_weapon_levels[content_id] = level + 1
+		else:
+			if next_weapon_ids.size() >= MAX_WEAPON_SLOTS or price != SHOP_WEAPON_PRICE:
+				return false
+			next_weapon_ids.append(content_id)
+			next_weapon_levels[content_id] = 1
+	elif offer_type == SHOP_OFFER_TYPE_RELIC:
+		var relic := _get_relic_config(content_id)
+		if relic == null or not _is_valid_shop_resource(relic, SHOP_OFFER_TYPE_RELIC) or expected_offer_id != StringName("relic:%s" % content_id):
+			return false
+		if String(content_id) in next_relics or price != int(relic.get("price")):
+			return false
+		next_relics.append(String(content_id))
+	else:
+		return false
+
+	var excluded_offer_ids: Dictionary = {}
+	for other_slot in shop_inventory:
+		if not other_slot.is_empty():
+			excluded_offer_ids[StringName(other_slot.get("offer_id", &""))] = true
+	var candidates := _build_shop_offer_candidates_for_state(excluded_offer_ids, next_weapon_ids, next_weapon_levels, next_relics)
+	var refill: Dictionary = {}
+	if not candidates.is_empty():
+		var generator := rng
+		if generator == null:
+			generator = RandomNumberGenerator.new()
+			generator.randomize()
+		var selected_index := _weighted_candidate_index(candidates, generator)
+		if selected_index < 0:
+			return false
+		refill = candidates[selected_index]
+		refill["slot_index"] = slot_index
+		refill["locked"] = false
+
+	current_coins -= price
+	equipped_weapon_ids = next_weapon_ids
+	weapon_upgrade_levels = next_weapon_levels
+	owned_relics = next_relics
+	if offer_type == SHOP_OFFER_TYPE_RELIC:
+		_invalidate_character_resolution()
+	var replacement: Array[Dictionary] = shop_inventory.duplicate(true)
+	replacement[slot_index] = refill
+	shop_inventory = replacement
+	return true
+
+
 func _is_valid_shop_inventory_for_reroll() -> bool:
 	if shop_reroll_count < 0 or shop_inventory.size() != SHOP_INVENTORY_SIZE:
 		return false
@@ -216,18 +287,22 @@ func _is_valid_shop_resource(resource: Resource, offer_type: StringName) -> bool
 
 
 func _build_shop_offer_candidates(excluded_offer_ids: Dictionary = {}) -> Array[Dictionary]:
+	return _build_shop_offer_candidates_for_state(excluded_offer_ids, equipped_weapon_ids, weapon_upgrade_levels, owned_relics)
+
+
+func _build_shop_offer_candidates_for_state(excluded_offer_ids: Dictionary, weapon_ids: Array[StringName], weapon_levels: Dictionary, relic_ids: Array[String]) -> Array[Dictionary]:
 	var candidates: Array[Dictionary] = []
 	var seen_offer_ids: Dictionary = {}
 	for weapon in WEAPON_OPTIONS:
 		if not _is_valid_shop_resource(weapon, SHOP_OFFER_TYPE_WEAPON):
 			continue
 		var weapon_id := StringName(weapon.get("id"))
-		var is_owned := weapon_id in equipped_weapon_ids
+		var is_owned := weapon_id in weapon_ids
 		if is_owned:
-			var level := get_weapon_upgrade_level(weapon_id)
+			var level := int(weapon_levels.get(weapon_id, 0))
 			if level < 1 or level >= MAX_WEAPON_LEVEL:
 				continue
-		elif equipped_weapon_ids.size() >= MAX_WEAPON_SLOTS:
+		elif weapon_ids.size() >= MAX_WEAPON_SLOTS:
 			continue
 		var offer := _create_shop_offer_snapshot(weapon, SHOP_OFFER_TYPE_WEAPON, -1)
 		if excluded_offer_ids.has(offer["offer_id"]) or seen_offer_ids.has(offer["offer_id"]):
@@ -238,7 +313,7 @@ func _build_shop_offer_candidates(excluded_offer_ids: Dictionary = {}) -> Array[
 		if not _is_valid_shop_resource(relic, SHOP_OFFER_TYPE_RELIC):
 			continue
 		var relic_id := StringName(relic.get("id"))
-		if has_relic(String(relic_id)):
+		if String(relic_id) in relic_ids:
 			continue
 		var offer := _create_shop_offer_snapshot(relic, SHOP_OFFER_TYPE_RELIC, -1)
 		if excluded_offer_ids.has(offer["offer_id"]) or seen_offer_ids.has(offer["offer_id"]):
@@ -286,7 +361,14 @@ func _create_shop_offer_snapshot(resource: Resource, offer_type: StringName, slo
 		"weight": float(resource.get("shop_weight")),
 		"price": price,
 		"locked": false,
-	}
+}
+
+
+func _get_relic_config(relic_id: StringName) -> Resource:
+	for relic in RELIC_OPTIONS:
+		if relic != null and StringName(relic.get("id")) == relic_id:
+			return relic
+	return null
 
 
 func get_available_characters() -> Array[Resource]:

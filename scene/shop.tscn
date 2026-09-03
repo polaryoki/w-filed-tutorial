@@ -31,7 +31,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(320, 300)
+custom_minimum_size = Vector2(620, 360)
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
@@ -64,45 +64,106 @@ theme_override_fonts/font = ExtResource("2_font")
 text = "金币：0"
 horizontal_alignment = 1
 
-[node name="RelicItems" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout"]
+[node name="ShopSlots" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Slot0" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots"]
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 theme_override_constants/separation = 6
+[node name="Info" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot0"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Slot 1: Empty"
+[node name="PurchaseButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot0"]
+custom_minimum_size = Vector2(74, 34)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Purchase"
+[node name="UpgradeButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot0"]
+custom_minimum_size = Vector2(74, 34)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Upgrade"
+[node name="LockButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot0"]
+custom_minimum_size = Vector2(64, 34)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Lock"
 
-[node name="RelicItem0" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems"]
+[node name="Slot1" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots"]
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
-[node name="Info" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem0"]
+theme_override_constants/separation = 6
+[node name="Info" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot1"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Slot 2: Empty"
+[node name="PurchaseButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot1"]
+custom_minimum_size = Vector2(74, 34)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 12
-[node name="BuyButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem0"]
-custom_minimum_size = Vector2(0, 30)
+text = "Purchase"
+[node name="UpgradeButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot1"]
+custom_minimum_size = Vector2(74, 34)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 12
+text = "Upgrade"
+[node name="LockButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot1"]
+custom_minimum_size = Vector2(64, 34)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Lock"
 
-[node name="RelicItem1" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems"]
+[node name="Slot2" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots"]
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
-[node name="Info" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem1"]
+theme_override_constants/separation = 6
+[node name="Info" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot2"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Slot 3: Empty"
+[node name="PurchaseButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot2"]
+custom_minimum_size = Vector2(74, 34)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 12
-[node name="BuyButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem1"]
-custom_minimum_size = Vector2(0, 30)
+text = "Purchase"
+[node name="UpgradeButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot2"]
+custom_minimum_size = Vector2(74, 34)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 12
+text = "Upgrade"
+[node name="LockButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/ShopSlots/Slot2"]
+custom_minimum_size = Vector2(64, 34)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Lock"
 
-[node name="RelicItem2" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems"]
-layout_mode = 2
-[node name="Info" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem2"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 12
-[node name="BuyButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems/RelicItem2"]
-custom_minimum_size = Vector2(0, 30)
+[node name="RerollButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout"]
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
+text = "Reroll"
 
 [node name="ContinueButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Layout"]
 custom_minimum_size = Vector2(0, 42)

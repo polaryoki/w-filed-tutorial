@@ -1,150 +1,82 @@
 extends Control
-
-const RELIC_OPTIONS: Array[RelicData] = [
-	preload("res://resourse/relic/relic_lucky_start.tres"),
-	preload("res://resourse/relic/relic_rapid_chamber.tres"),
-	preload("res://resourse/relic/relic_reinforced_charm.tres"),
-	preload("res://resourse/relic/relic_swift_boots.tres"),
-	preload("res://resourse/relic/relic_iron_will.tres"),
-	preload("res://resourse/relic/relic_long_barrel.tres"),
-]
-const WEAPON_OPTIONS: Array[WeaponConfig] = [
-	preload("res://resourse/weapon/weapon_basic.tres"),
-	preload("res://resourse/weapon/weapon_scatter.tres"),
-	preload("res://resourse/weapon/weapon_arc.tres"),
-	preload("res://resourse/weapon/weapon_driver.tres"),
-]
-const WEAPON_OFFER_PRICE := 12
-const WEAPON_UPGRADE_PRICE := 10
-const REROLL_PRICE := 5
-
 @onready var round_label: Label = $CenterContainer/PanelContainer/MarginContainer/Layout/RoundLabel
 @onready var gold_label: Label = $CenterContainer/PanelContainer/MarginContainer/Layout/GoldLabel
 @onready var continue_button: Button = $CenterContainer/PanelContainer/MarginContainer/Layout/ContinueButton
-@onready var relic_items: VBoxContainer = $CenterContainer/PanelContainer/MarginContainer/Layout/RelicItems
-var displayed_relics: Array[RelicData] = []
-var displayed_weapons: Array[WeaponConfig] = []
 var weapon_items: VBoxContainer
-
+var slot_items: VBoxContainer
+var reroll_button: Button
+var displayed_weapons: Array = []
+var _rng := RandomNumberGenerator.new()
 func _ready() -> void:
-	round_label.text = "回合 %d" % GameSession.current_round
-	_build_relic_options()
-	_build_weapon_options()
-	_build_weapon_ui()
-	_refresh_gold()
-	continue_button.grab_focus()
-
-func _build_relic_options() -> void:
-	var available: Array[RelicData] = []
-	for relic in RELIC_OPTIONS:
-		if relic != null and not GameSession.has_relic(String(relic.id)):
-			available.append(relic)
-	available.shuffle()
-	displayed_relics = available.slice(0, mini(3, available.size()))
-	for index in range(relic_items.get_child_count()):
-		var item_root := relic_items.get_child(index) as VBoxContainer
-		var info := item_root.get_node("Info") as Label
-		var buy_button := item_root.get_node("BuyButton") as Button
-		if index >= displayed_relics.size():
-			item_root.hide()
-			continue
-		var relic := displayed_relics[index]
-		info.text = "%s (%d)\n%s" % [relic.display_name, relic.price, relic.description]
-		buy_button.pressed.connect(_on_relic_buy_pressed.bind(index))
-		_refresh_relic_button(index)
-
-func _on_relic_buy_pressed(index: int) -> void:
-	if index < 0 or index >= displayed_relics.size():
-		return
-	var relic := displayed_relics[index]
-	if not GameSession.try_purchase_relic(String(relic.id), relic.price):
-		return
-	_refresh_gold()
-
-func _refresh_relic_button(index: int) -> void:
-	if index < 0 or index >= displayed_relics.size():
-		return
-	var item_root := relic_items.get_child(index) as VBoxContainer
-	var buy_button := item_root.get_node("BuyButton") as Button
-	var relic := displayed_relics[index]
-	if GameSession.has_relic(String(relic.id)):
-		buy_button.text = "已购买"
-		buy_button.disabled = true
-	else:
-		buy_button.text = "购买（%d）" % relic.price
-		buy_button.disabled = GameSession.current_coins < relic.price
-
-func _refresh_gold() -> void:
-	gold_label.text = "金币：%d" % GameSession.current_coins
-	for index in displayed_relics.size():
-		_refresh_relic_button(index)
-	_refresh_weapon_ui()
-
-func _on_continue_button_pressed() -> void:
-	GameSession.current_round += 1
-	Engine.time_scale = 1.0
-	get_tree().paused = false
-	get_tree().change_scene_to_file("res://scene/game.tscn")
-
-func _build_weapon_options() -> void:
-	displayed_weapons.clear()
-	for weapon in WEAPON_OPTIONS:
-		if weapon != null and weapon.id not in GameSession.equipped_weapon_ids:
-			displayed_weapons.append(weapon)
-
-func try_buy_weapon(index: int) -> bool:
-	if index < 0 or index >= displayed_weapons.size():
-		return false
-	var weapon := displayed_weapons[index]
-	if not GameSession.try_purchase_weapon(weapon.id, WEAPON_OFFER_PRICE):
-		return false
-	_build_weapon_options()
-	_refresh_gold()
-	return true
-
-func try_upgrade_weapon(weapon_id: StringName) -> bool:
-	var upgraded := GameSession.upgrade_weapon(weapon_id, WEAPON_UPGRADE_PRICE)
-	if upgraded: _refresh_gold()
-	return upgraded
-
-func _build_weapon_ui() -> void:
+	round_label.text = "Round %d" % GameSession.current_round
+	var layout := $CenterContainer/PanelContainer/MarginContainer/Layout
+	var old := layout.get_node_or_null("RelicItems"); if old: old.queue_free()
+	# Prefer the authored ShopSlots/RerollButton nodes.  The fallback keeps the
+	# scene backwards compatible with the Phase 10 layout.
+	slot_items = layout.get_node_or_null("ShopSlots") as VBoxContainer
+	if slot_items == null:
+		slot_items = VBoxContainer.new(); slot_items.name = "ShopSlots"; layout.add_child(slot_items)
+	reroll_button = layout.get_node_or_null("RerollButton") as Button
+	if reroll_button == null:
+		reroll_button = Button.new(); reroll_button.name = "RerollButton"; layout.add_child(reroll_button)
+	if not reroll_button.pressed.is_connected(_on_reroll_pressed):
+		reroll_button.pressed.connect(_on_reroll_pressed)
+	weapon_items = layout.get_node_or_null("WeaponItems") as VBoxContainer
 	if weapon_items == null:
-		weapon_items = VBoxContainer.new()
-		weapon_items.name = "WeaponItems"
-		var layout := get_node("CenterContainer/PanelContainer/MarginContainer/Layout")
-		layout.add_child(weapon_items)
-		layout.move_child(weapon_items, layout.get_child_count() - 2)
-	_refresh_weapon_ui()
+		weapon_items = VBoxContainer.new(); weapon_items.name = "WeaponItems"; layout.add_child(weapon_items)
+	displayed_weapons = GameSession.WEAPON_OPTIONS.duplicate()
+	GameSession.ensure_shop_inventory(_rng); _refresh_weapon_ui(); _refresh_shop(); continue_button.grab_focus()
+func _refresh_shop() -> void:
+	if not is_instance_valid(slot_items) or not is_instance_valid(reroll_button): return
+	round_label.text = "Round %d" % GameSession.current_round
+	gold_label.text = "Coins: %d" % GameSession.current_coins; reroll_button.text = "Reroll %d" % GameSession.get_shop_reroll_price()
+	for c in slot_items.get_children():
+		slot_items.remove_child(c)
+		c.queue_free()
+	var snap: Array[Dictionary] = GameSession.get_shop_inventory_snapshot()
+	# Always render exactly three rows, including empty slots, from a fresh snapshot.
+	for i in GameSession.SHOP_INVENTORY_SIZE:
+		var offer: Dictionary = snap[i] if i < snap.size() else {}
+		var row := HBoxContainer.new(); row.name = "Slot%d" % i
+		var info := Label.new(); info.name = "Info"; info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var buy := Button.new(); buy.name = "PurchaseButton"
+		var upgrade := Button.new(); upgrade.name = "UpgradeButton"; upgrade.visible = false
+		var lock := Button.new(); lock.name = "LockButton"
+		row.add_child(info); row.add_child(buy); row.add_child(lock); row.add_child(upgrade); slot_items.add_child(row)
+		if offer.is_empty(): info.text = "Slot %d: Unavailable" % (i + 1); buy.text = "Empty"; buy.disabled = true; lock.disabled = true; continue
+		var weapon: bool = offer.get("offer_type") == &"weapon"; var id := StringName(offer.get("content_id")); var level := GameSession.get_weapon_upgrade_level(id) if weapon else 0
+		info.text = "%s %s%s  Rarity %d  Price %d" % ["Weapon" if weapon else "Relic", String(id), (" Lv.%d" % level) if weapon else "", int(offer.get("rarity", 0)), int(offer.get("price", 0))]
+		buy.text = "Purchase" if weapon and level <= 0 else ("Purchase" if not weapon else "Upgrade")
+		upgrade.visible = weapon and level > 0
+		upgrade.text = "Upgrade"
+		buy.disabled = GameSession.current_coins < int(offer.get("price", 0))
+		var oid := StringName(offer.get("offer_id", &"")); buy.pressed.connect(_on_purchase_pressed.bind(i, oid))
+		upgrade.pressed.connect(_on_purchase_pressed.bind(i, oid))
+		var is_locked := bool(offer.get("locked", false)); lock.text = "Unlock" if is_locked else "Lock"; lock.pressed.connect(_on_lock_pressed.bind(i, oid, not is_locked))
+		lock.disabled = oid == &""
+func _on_purchase_pressed(i: int, oid: StringName) -> void: GameSession.try_purchase_shop_offer(i, oid, _rng); _refresh_shop()
+func _on_lock_pressed(i: int, oid: StringName, value: bool) -> void: GameSession.set_shop_offer_locked(i, oid, value); _refresh_shop()
+func _on_reroll_pressed() -> void: GameSession.try_reroll_shop(_rng); _refresh_shop()
+func _on_continue_button_pressed() -> void: GameSession.current_round += 1; Engine.time_scale = 1.0; get_tree().paused = false; get_tree().change_scene_to_file("res://scene/game.tscn")
+func try_buy_weapon(index: int) -> bool:
+	var available: Array[StringName] = []
+	for weapon in GameSession.WEAPON_OPTIONS:
+		if weapon.id not in GameSession.equipped_weapon_ids: available.append(weapon.id)
+	if index < 0 or index >= available.size(): return false
+	var ok := GameSession.try_purchase_weapon(available[index], GameSession.SHOP_WEAPON_PRICE); _refresh_shop(); return ok
+func try_upgrade_weapon(id: StringName) -> bool:
+	var ok := GameSession.upgrade_weapon(id, GameSession.SHOP_WEAPON_UPGRADE_PRICE); _refresh_shop(); return ok
+func try_reroll() -> bool: var ok := GameSession.try_reroll_shop(_rng); _refresh_shop(); return ok
 
 func _refresh_weapon_ui() -> void:
 	if weapon_items == null: return
-	for child in weapon_items.get_children(): child.free()
-	for weapon in WEAPON_OPTIONS:
-		var row := HBoxContainer.new()
-		var label := Label.new()
-		var button := Button.new()
+	for c in weapon_items.get_children(): c.queue_free()
+	for weapon in displayed_weapons:
+		var row := HBoxContainer.new(); var label := Label.new(); var button := Button.new()
+		label.text = weapon.display_name; button.text = "Upgrade %d" % GameSession.SHOP_WEAPON_UPGRADE_PRICE
+		button.disabled = weapon.id not in GameSession.equipped_weapon_ids or GameSession.current_coins < GameSession.SHOP_WEAPON_UPGRADE_PRICE
 		row.add_child(label); row.add_child(button); weapon_items.add_child(row)
-		if weapon.id in GameSession.equipped_weapon_ids:
-			var level := GameSession.get_weapon_upgrade_level(weapon.id)
-			label.text = "%s  Lv.%d" % [weapon.display_name, level]
-			button.text = "Upgrade %d" % WEAPON_UPGRADE_PRICE
-			button.disabled = GameSession.current_coins < WEAPON_UPGRADE_PRICE
-			button.pressed.connect(func(): try_upgrade_weapon(weapon.id))
-		else:
-			label.text = weapon.display_name
-			button.text = "Buy %d" % WEAPON_OFFER_PRICE
-			button.disabled = GameSession.current_coins < WEAPON_OFFER_PRICE or GameSession.equipped_weapon_ids.size() >= GameSession.MAX_WEAPON_SLOTS
-			button.pressed.connect(_buy_weapon_by_id.bind(weapon.id))
 
-func _buy_weapon_by_id(weapon_id: StringName) -> void:
-	if GameSession.try_purchase_weapon(weapon_id, WEAPON_OFFER_PRICE):
-		_build_weapon_options(); _refresh_gold()
-
-func try_reroll() -> bool:
-	if not GameSession.reroll_shop(REROLL_PRICE):
-		return false
-	displayed_relics.clear()
-	_build_relic_options()
-	_build_weapon_options()
-	_refresh_gold()
-	return true
+# Public alias used by focused smoke/integration checks.
+func refresh_shop() -> void:
+	_refresh_shop()
