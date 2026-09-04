@@ -5,6 +5,7 @@ extends Control
 var weapon_items: VBoxContainer
 var slot_items: VBoxContainer
 var reroll_button: Button
+var stat_sheet_label: Label
 var displayed_weapons: Array = []
 var _rng := RandomNumberGenerator.new()
 func _ready() -> void:
@@ -24,12 +25,16 @@ func _ready() -> void:
 	weapon_items = layout.get_node_or_null("WeaponItems") as VBoxContainer
 	if weapon_items == null:
 		weapon_items = VBoxContainer.new(); weapon_items.name = "WeaponItems"; layout.add_child(weapon_items)
+	stat_sheet_label = layout.get_node_or_null("StatSheet") as Label
+	if stat_sheet_label == null:
+		stat_sheet_label = Label.new(); stat_sheet_label.name = "StatSheet"; stat_sheet_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; layout.add_child(stat_sheet_label)
 	displayed_weapons = GameSession.WEAPON_OPTIONS.duplicate()
 	GameSession.ensure_shop_inventory(_rng); _refresh_weapon_ui(); _refresh_shop(); continue_button.grab_focus()
 func _refresh_shop() -> void:
 	if not is_instance_valid(slot_items) or not is_instance_valid(reroll_button): return
 	round_label.text = "Round %d" % GameSession.current_round
 	gold_label.text = "Coins: %d" % GameSession.current_coins; reroll_button.text = "Reroll %d" % GameSession.get_shop_reroll_price()
+	_refresh_stat_sheet()
 	for c in slot_items.get_children():
 		slot_items.remove_child(c)
 		c.queue_free()
@@ -80,3 +85,10 @@ func _refresh_weapon_ui() -> void:
 # Public alias used by focused smoke/integration checks.
 func refresh_shop() -> void:
 	_refresh_shop()
+
+func _refresh_stat_sheet() -> void:
+	if not is_instance_valid(stat_sheet_label): return
+	var stats: Dictionary = GameSession.get_final_stat_sheet()
+	var relics: Array = GameSession.owned_relics.duplicate()
+	var upgrades: Dictionary = GameSession.level_upgrade_stacks.duplicate(true)
+	stat_sheet_label.text = "Build  |  HP %d  DMG %d  SPD %.1f  FIRE %.3f  PROJ %d  ARM %d  LUCK %.2f\nRelics: %s  Upgrades: %s" % [int(stats.get("max_health", 0)), int(stats.get("damage", 0)), float(stats.get("move_speed", 0.0)), float(stats.get("fire_interval", 0.0)), int(stats.get("projectile_count", 0)), int(stats.get("armor", 0)), float(stats.get("luck", 0.0)), ", ".join(relics) if not relics.is_empty() else "none", str(upgrades) if not upgrades.is_empty() else "none"]

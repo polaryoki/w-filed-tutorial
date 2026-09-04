@@ -8,6 +8,7 @@ enum EffectType {
 	MOVE_SPEED_MULTIPLIER,
 	INVINCIBILITY_DURATION_BONUS,
 	BULLET_SPAWN_DISTANCE_BONUS,
+	DAMAGE_BONUS,
 }
 
 enum ShopRarity {
@@ -24,3 +25,6 @@ enum ShopRarity {
 @export_range(0.01, 1000.0, 0.01, "or_greater") var shop_weight: float = 1.0
 @export var effect_type: EffectType = EffectType.STARTING_COINS
 @export var effect_value: float = 0.0
+@export var secondary_effect_type: EffectType = EffectType.STARTING_COINS
+@export var secondary_effect_value: float = 0.0
+@export var has_secondary_effect: bool = false

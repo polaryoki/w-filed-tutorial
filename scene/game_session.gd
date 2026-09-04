@@ -20,6 +20,9 @@ const RELIC_OPTIONS: Array[Resource] = [
 	preload("res://resourse/relic/relic_swift_boots.tres"),
 	preload("res://resourse/relic/relic_iron_will.tres"),
 	preload("res://resourse/relic/relic_long_barrel.tres"),
+	preload("res://resourse/relic/relic_brittle_core.tres"),
+	preload("res://resourse/relic/relic_glass_cannon.tres"),
+	preload("res://resourse/relic/relic_heavy_frame.tres"),
 ]
 const SYNERGY_OPTIONS: Array[Resource] = [preload("res://resourse/weapon/synergy_kinetic_pair.tres")]
 const UPGRADE_OPTIONS: Array[Resource] = [
@@ -617,13 +620,23 @@ func resolve_character_stats() -> Dictionary:
 func _collect_stat_modifiers(character: Resource) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for relic_id in owned_relics.duplicate():
-		match relic_id:
-			"lucky_start": result.append(_modifier(&"starting_coins", &"flat", 2.0, &"lucky_start", &"relic"))
-			"rapid_chamber": result.append(_modifier(&"fire_interval", &"percent", -0.1, &"rapid_chamber", &"relic"))
-			"reinforced_charm": result.append(_modifier(&"max_health", &"flat", 1.0, &"reinforced_charm", &"relic"))
-			"swift_boots": result.append(_modifier(&"move_speed", &"percent", 0.15, &"swift_boots", &"relic"))
-			"iron_will": result.append(_modifier(&"invincibility_duration", &"flat", 0.25, &"iron_will", &"relic"))
-			"long_barrel": result.append(_modifier(&"bullet_spawn_distance", &"flat", 6.0, &"long_barrel", &"relic"))
+		var relic := _get_relic_config(StringName(relic_id))
+		if relic == null: continue
+		for effect_index in 2:
+			if effect_index == 1 and not bool(relic.get("has_secondary_effect")): continue
+			var value_key := "effect_value" if effect_index == 0 else "secondary_effect_value"
+			var type_key := "effect_type" if effect_index == 0 else "secondary_effect_type"
+			var stat := &""; var op := &"flat"; var amount := float(relic.get(value_key))
+			var effect_type := int(relic.get(type_key))
+			match effect_type:
+				RelicData.EffectType.STARTING_COINS: stat = &"starting_coins"
+				RelicData.EffectType.FIRE_INTERVAL_MULTIPLIER: stat = &"fire_interval"; op = &"percent"; amount -= 1.0
+				RelicData.EffectType.MAX_HEALTH_BONUS: stat = &"max_health"
+				RelicData.EffectType.MOVE_SPEED_MULTIPLIER: stat = &"move_speed"; op = &"percent"; amount -= 1.0
+				RelicData.EffectType.INVINCIBILITY_DURATION_BONUS: stat = &"invincibility_duration"
+				RelicData.EffectType.BULLET_SPAWN_DISTANCE_BONUS: stat = &"bullet_spawn_distance"
+				RelicData.EffectType.DAMAGE_BONUS: stat = &"damage"
+			if stat != &"": result.append(_modifier(stat, op, amount, StringName("%s_%d" % [relic_id, effect_index]), &"relic"))
 	for upgrade_id in level_upgrade_stacks:
 		var stacks := maxi(int(level_upgrade_stacks[upgrade_id]), 0)
 		var upgrade := get_level_upgrade(StringName(upgrade_id))

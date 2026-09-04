@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://resourse/relic/relic_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"heavy_frame"
+display_name = "Heavy Frame"
+description = "Maximum health up, movement speed down."
+price = 10
+effect_type = 2
+effect_value = 2.0
+secondary_effect_type = 3
+secondary_effect_value = 0.9
+has_secondary_effect = true

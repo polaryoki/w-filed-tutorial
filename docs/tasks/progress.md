@@ -88,8 +88,20 @@ runtime crash and all current tests exit successfully.
 
 ## Next step
 
-Begin Phase 11 Task 5 only: atomic purchase and duplicate Weapon upgrade. Tasks 6-7 and Phase 12
-have not started; Phase 11 remains not DONE.
+Phase 12 Task 4 is complete: RelicData and UpgradeConfig effects now flow through the
+GameSession-owned modifier/stat-sheet pipeline, including the negative `brittle_core` tradeoff.
+Focused Task 4 smoke and all required Phase 12/11/10/editor/diff gates passed with exit 0.
+
+Phase 12 Task 5 is complete: Shop now renders a compact read-only build/stat summary from the
+defensive GameSession final stat sheet and refreshes it after reset, upgrade, relic purchase,
+reload, and Continue-related scene setup. Focused and regression gates passed with exit 0.
+
+Next step is Phase 12 Task 6 only when explicitly started.
+
+Phase 12 Task 6 is complete: added a small set of original tradeoff RelicData resources,
+including dual positive/negative effects resolved through GameSession's existing modifier
+pipeline. Focused smoke and all required Phase 12/11/10/editor/diff gates exited 0.
+Next step is Phase 12 Task 7 only when explicitly started.
 
 ## Phase 11 Task 1 acceptance
 

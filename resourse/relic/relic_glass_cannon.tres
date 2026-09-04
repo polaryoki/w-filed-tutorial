@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://resourse/relic/relic_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"glass_cannon"
+display_name = "Glass Cannon"
+description = "Damage up, maximum health down."
+price = 12
+effect_type = 6
+effect_value = 2.0
+secondary_effect_type = 2
+secondary_effect_value = -2.0
+has_secondary_effect = true
