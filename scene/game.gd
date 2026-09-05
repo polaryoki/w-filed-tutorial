@@ -262,9 +262,9 @@ func _update_round_count_label() -> void:
 	if round_count_label == null:
 		return
 	if wave_director != null and not boss_encounter:
-		round_count_label.text = "Wave %d  %ds  Kills %d/%d" % [GameSession.current_round, ceili(wave_director.time_left), wave_director.defeated_count, wave_director.spawned_count]
+		round_count_label.text = "第 %d 回合  剩余 %d 秒  击杀 %d" % [GameSession.current_round, ceili(wave_director.time_left), wave_director.defeated_count]
 	else:
-		round_count_label.text = "Round %d" % GameSession.current_round
+		round_count_label.text = "第 %d 回合" % GameSession.current_round
 
 
 func _update_character_label() -> void:
@@ -559,6 +559,10 @@ func _try_spawn_enemy_from_config(enemy_config: Resource) -> bool:
 	if spawn_point == null:
 		return false
 
+	var scaled_config := enemy_config.duplicate(true) as EnemyConfig
+	var round_factor := 1.0 + maxf(float(GameSession.current_round - 1), 0.0) * 0.1
+	scaled_config.max_health = maxi(roundi(float(enemy_config.max_health) * round_factor), enemy_config.max_health)
+	scaled_config.move_speed = float(enemy_config.move_speed) * (1.0 + maxf(float(GameSession.current_round - 1), 0.0) * 0.025)
 	var enemy_instance := enemy_scene.instantiate() as Enemy
 	if enemy_instance == null:
 		push_warning("敌人场景实例化失败，请检查 enemy_scene 设置。")
@@ -566,7 +570,7 @@ func _try_spawn_enemy_from_config(enemy_config: Resource) -> bool:
 
 	enemy_container.add_child(enemy_instance)
 	enemy_instance.global_position = spawn_point.global_position
-	enemy_instance.setup(enemy_config, player)
+	enemy_instance.setup(scaled_config, player)
 	if not enemy_instance.defeated.is_connected(_on_enemy_defeated):
 		enemy_instance.defeated.connect(_on_enemy_defeated)
 	if wave_director != null:

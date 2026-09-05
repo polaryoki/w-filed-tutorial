@@ -103,6 +103,12 @@ including dual positive/negative effects resolved through GameSession's existing
 pipeline. Focused smoke and all required Phase 12/11/10/editor/diff gates exited 0.
 Next step is Phase 12 Task 7 only when explicitly started.
 
+Phase 12 Task 7 is complete: added a focused full-regression smoke that records the deterministic
+final-stat/combat baseline (`damage=1`, `max_health=5`, `glass_cannon damage=3`, runtime damage `3`),
+confirms Shop snapshot ownership, and verifies Player/WeaponSystem consume the same final sheet.
+Task 7 focused smoke and all required Phase 12/11/10/1-9, editor check-only, and diff checks exited 0.
+Phase 12 is complete; Phase 13 remains unstarted.
+
 ## Phase 11 Task 1 acceptance
 
 - WeaponConfig and RelicData expose minimal `COMMON/UNCOMMON/RARE` rarity and

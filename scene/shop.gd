@@ -9,7 +9,7 @@ var stat_sheet_label: Label
 var displayed_weapons: Array = []
 var _rng := RandomNumberGenerator.new()
 func _ready() -> void:
-	round_label.text = "Round %d" % GameSession.current_round
+	round_label.text = "第 %d 回合" % GameSession.current_round
 	var layout := $CenterContainer/PanelContainer/MarginContainer/Layout
 	var old := layout.get_node_or_null("RelicItems"); if old: old.queue_free()
 	# Prefer the authored ShopSlots/RerollButton nodes.  The fallback keeps the
@@ -32,7 +32,7 @@ func _ready() -> void:
 	GameSession.ensure_shop_inventory(_rng); _refresh_weapon_ui(); _refresh_shop(); continue_button.grab_focus()
 func _refresh_shop() -> void:
 	if not is_instance_valid(slot_items) or not is_instance_valid(reroll_button): return
-	round_label.text = "Round %d" % GameSession.current_round
+	round_label.text = "第 %d 回合" % GameSession.current_round
 	gold_label.text = "Coins: %d" % GameSession.current_coins; reroll_button.text = "Reroll %d" % GameSession.get_shop_reroll_price()
 	_refresh_stat_sheet()
 	for c in slot_items.get_children():
